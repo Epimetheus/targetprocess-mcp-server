@@ -415,7 +415,10 @@ server.registerTool('search_tp_cards', {
   },
 },
   async ({ keyword, entityType = "UserStories" }) => {
-    const results = await tp.searchContainsDescriptionText<TP.TpResponse<TP.General>>({ text: keyword, entityType })
+    const results = await Promise.all<TP.TpResponse<TP.General>>([
+      tp.searchContainsNameText<TP.TpResponse<TP.UserStory>>({ text: keyword, entityType }),
+      tp.searchContainsDescriptionText<TP.TpResponse<TP.General>>({ text: keyword, entityType })
+    ])
     if (!results) {
       return {
         content: [{
@@ -425,7 +428,7 @@ server.registerTool('search_tp_cards', {
       }
     }
 
-    const items = results.Items || []
+    const items = results.map((item: TP.TpResponse<TP.General>) => item.Items).flat()
 
     if (items.length == 0) {
       return {
