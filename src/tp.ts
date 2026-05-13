@@ -539,15 +539,24 @@ export class TpClient {
     }) as T
   }
 
-  async addAttachedFile(generalId: string, filePath: string): Promise<string | null> {
-    const fileContent = readFileSync(filePath)
-    const fileName = basename(filePath)
+  async addAttachedFile(generalId: string, source: { filePath: string } | { fileContent: string; fileName: string }): Promise<string | null> {
+    let blob: Blob
+    let fileName: string
+
+    if ("filePath" in source) {
+      blob = new Blob([readFileSync(source.filePath)])
+      fileName = basename(source.filePath)
+    } else {
+      blob = new Blob([Buffer.from(source.fileContent, "base64")])
+      fileName = source.fileName
+    }
 
     const formData = new FormData()
     formData.append("generalId", generalId)
-    formData.append("file", new Blob([fileContent]), fileName)
+    formData.append("file", blob, fileName)
 
     const url = `${this.baseUrl}/UploadFile.ashx?access_token=${this.token}`
+    console.error(JSON.stringify({ "UPLOAD_URL": url.replace(this.token, "***") }, null, 2))
 
     try {
       const response = await fetch(url, {
@@ -557,7 +566,7 @@ export class TpClient {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
-      return response.text()
+      return await response.text()
     } catch (error) {
       console.error("Error uploading file:", error)
       return null
