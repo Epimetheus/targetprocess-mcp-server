@@ -537,6 +537,28 @@ export interface TpResponseV2<TpResponseItemsV2> {
   items: TpResponseItemsV2[]
 }
 
+export interface WorkflowV2 {
+  id: number
+  name: string
+  process: string
+  entityType: string
+  entityStates: WorkflowEntityStateV2[]
+}
+
+export interface WorkflowEntityStateV2 {
+  id: number
+  name: string
+  numericPriority: number
+  isInitial: boolean
+  isFinal: boolean
+  isDefaultFinal: boolean
+  isPlanned: boolean
+  isCommentRequired: boolean
+  workflowId: number
+  activeRoleId: number
+  activeRoleName: string
+}
+
 export interface TpResponseItemsV2<T> {
   items: T[]
 }

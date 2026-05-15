@@ -1,6 +1,6 @@
 import { readFileSync } from "fs";
 import { basename } from "path";
-import { TpClientParameters, TpResponse, BugInputSchema, UserStoryInputSchema } from "./types.js";
+import { TpClientParameters, TpResponse, BugInputSchema } from "./types.js";
 import { config } from "./config.js";
 
 export class TpClient {
@@ -149,32 +149,46 @@ export class TpClient {
   }
 
 
-  async updateUserStory<T>({ title, description, projectId, teamId }: UserStoryInputSchema): Promise<T> {
-    const userStory: Record<string, any> = {
-      "Name": title,
-      "Description": description,
-      "Project": {
-        "Id": projectId || config.tp.projectId
-      },
-      "assignedTeams": [
-        {
-          "entityState": {
-            "id": 7407
-          },
-          "id": 84252,
-          "team": {
-            "id": teamId || config.tp.teamId
-          }
-        }
-      ]
-    }
+  async updateUserStory<T>({ id, title, description, projectId, teamId, entityStateId }: { id: string, title?: string, description?: string, projectId?: string, teamId?: string, entityStateId?: string }): Promise<T> {
+    const userStory: Record<string, any> = { "Id": id }
+
+    if (title) userStory["Name"] = title
+    if (description) userStory["Description"] = description
+    if (projectId) userStory["Project"] = { "Id": projectId }
+    if (teamId) userStory["assignedTeams"] = [{ "team": { "id": teamId } }]
+    if (entityStateId) userStory["EntityState"] = { "Id": entityStateId }
+
     return this.post<any, T>({
       pathParam: ["UserStories"],
       param: { "format": "json" },
     }, userStory) as T
   }
 
-  async createBugOnly<T>({ title, bugContent, origin = "Manual QA", projectId, teamId }: BugInputSchema): Promise<T> {
+  async updateBug<T>({ id, title, bugContent, origin, projectId, teamId, entityStateId }: { id: string, title?: string, bugContent?: string, origin?: string, projectId?: string, teamId?: string, entityStateId?: string }): Promise<T> {
+    const bug: Record<string, any> = { "Id": id }
+
+    if (title) bug["Name"] = title
+    if (bugContent) bug["Description"] = bugContent
+    if (origin) bug["customFields"] = [{
+      "name": "Origin",
+      "type": "DropDown",
+      "value": origin
+    }]
+    if (projectId) bug["Project"] = { "Id": projectId }
+    if (teamId) bug["assignedTeams"] = [{
+      "team": {
+        "id": teamId || config.tp.teamId
+      }
+    }]
+    if (entityStateId) bug["entityState"] = { "id": entityStateId }
+
+    return this.post<any, T>({
+      pathParam: ["bugs"],
+      param: { "format": "json" },
+    }, bug) as T
+  }
+
+  async createBugOnly<T>({ title, bugContent, origin = "Manual QA", projectId, teamId, entityStateId }: BugInputSchema): Promise<T> {
     const bug: Record<string, any> = {
       "Name": title,
       "Project": {
@@ -192,6 +206,8 @@ export class TpClient {
       }],
       "Description": bugContent,
     }
+
+    if (entityStateId) bug["EntityState"] = { "Id": entityStateId }
 
     return this.post<any, T>({
       pathParam: ["bugs"],
@@ -566,6 +582,32 @@ export class TpClient {
     return this.get<T>({
       pathParam: ["Teams"],
       param: { "format": "json" },
+    }) as T
+  }
+
+  async getUserStoryWorkflows<T>(): Promise<T> {
+    return this.get<T>({
+      pathParam: ["workflow"],
+      param: {
+        "format": "json",
+        "select": `{Id,Name,Process,EntityType,EntityStates.Select({Id,Name}) as EntityStates}`,
+        "where": `(process.id=${config.tp.processId} and entityType.name="userStory" and parentWorkflow=null)`,
+        "take": "1",
+      },
+      apiVersion: this.v2
+    }) as T
+  }
+
+  async getBugWorkflows<T>(): Promise<T> {
+    return this.get<T>({
+      pathParam: ["workflow"],
+      param: {
+        "format": "json",
+        "select": `{Id,Name,Process,EntityType,EntityStates.Select({Id,Name}) as EntityStates}`,
+        "where": `(process.id=${config.tp.processId} and entityType.name="bug" and parentWorkflow=null)`,
+        "take": "1",
+      },
+      apiVersion: this.v2
     }) as T
   }
 

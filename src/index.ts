@@ -774,6 +774,126 @@ server.registerTool(
 )
 
 server.registerTool(
+  'update_bug',
+  {
+    title: 'Update a bug card',
+    description: `Update a bug card with data proded from user input.
+      NOTE: pass only the fields that user wants to update.
+      CRITICAL WORKFLOW: Before calling this tool, you MUST follow these steps:
+        1) IF the user specified a team by name (not ID), call "get_teams" to find the matching team and use its ID as teamId;
+        2) IF the user specified a project by name (not ID), call "get_projects" to find the matching project and use its ID as projectId;
+        3) IF the user specified a state by name (not ID), call "get_bug_workflows" to find the matching state and use its ID as entityStateId;`,
+    inputSchema: {
+      id: z.string()
+        .min(5)
+        .max(6)
+        .describe('Bug card ID (e.g. 145789)'),
+      title: z.string()
+        .optional()
+        .describe('Bug card title that summarizes the problem in concise, descriptive, and actionable manner, enabling a developer to understand the issue without opening the report'),
+      bugContent: z.string()
+        .optional()
+        .describe(`Bug description content, explain what happened in detail. Include expected behaviour and what actually occurred. Be specific and avoid assumptions. Clearly outline the actions needed to trigger the bug. Number each step so anyone can follow them easily`),
+      origin: z.enum([
+        "Production - Customer",
+        "Production - Internal",
+        "Pre-Release - Customer",
+        "Pre-Release - Internal",
+        "Regression - Dev01",
+        "Regression - Team Env",
+        "Manual QA",
+        "Developer Raised",
+        "Operations",
+      ])
+        .optional()
+        .describe('Where the bug was found, defaults to "Manual QA"'),
+      projectId: z.string()
+        .optional()
+        .describe('Optional Project ID — if user gave a project name, resolve it via "get_projects" first; defaults to TP_PROJECT_ID from config'),
+      teamId: z.string()
+        .optional()
+        .describe('Optional Team ID — if user gave a team name, resolve it via "get_teams" first; defaults to TP_TEAM_ID from config'),
+      entityStateId: z.string()
+        .optional()
+        .describe('Optional Entity State ID — if user gave a state name, resolve it via "get_bug_workflows" first; defaults to "Done"'),
+    },
+  },
+  async ({ id, title, bugContent, origin, projectId, teamId, entityStateId }) => {
+    const bugResponse = await tp.updateBug<any>({ id, title, bugContent, origin, projectId, teamId, entityStateId });
+
+    if (!bugResponse) {
+      return {
+        content: [{
+          type: 'text',
+          text: `Failed to update bug "${title}"\n JSON: ${JSON.stringify(bugResponse, null, 2)}`
+        }]
+      };
+    }
+
+
+    return {
+      content: [{
+        type: 'text',
+        text: JSON.stringify(bugResponse)
+      }],
+    };
+  }
+)
+
+server.registerTool(
+  'update_user_story',
+  {
+    title: 'Update a user story card',
+    description: `Update a user story card with data provided from user input.
+      NOTE: pass only the fields that user wants to update.
+      CRITICAL WORKFLOW: Before calling this tool, you MUST follow these steps:
+        1) IF the user specified a team by name (not ID), call "get_teams" to find the matching team and use its ID as teamId;
+        2) IF the user specified a project by name (not ID), call "get_projects" to find the matching project and use its ID as projectId;
+        3) IF the user specified a state by name (not ID), call "get_user_story_workflows" to find the matching state and use its ID as entityStateId;`,
+    inputSchema: {
+      id: z.string()
+        .min(5)
+        .max(6)
+        .describe('User story card ID (e.g. 145789)'),
+      title: z.string()
+        .optional()
+        .describe('Updated user story title'),
+      description: z.string()
+        .optional()
+        .describe('Updated user story description (format as HTML)'),
+      projectId: z.string()
+        .optional()
+        .describe('Optional Project ID — if user gave a project name, resolve it via "get_projects" first'),
+      teamId: z.string()
+        .optional()
+        .describe('Optional Team ID — if user gave a team name, resolve it via "get_teams" first'),
+      entityStateId: z.string()
+        .optional()
+        .describe('Optional Entity State ID — if user gave a state name, resolve it via "get_user_story_workflows" first'),
+    },
+  },
+  async ({ id, title, description, projectId, teamId, entityStateId }) => {
+    const response = await tp.updateUserStory<any>({ id, title, description, projectId, teamId, entityStateId });
+
+    if (!response) {
+      return {
+        content: [{
+          type: 'text',
+          text: `Failed to update user story id: ${id}\n JSON: ${JSON.stringify(response, null, 2)}`
+        }]
+      };
+    }
+
+    return {
+      content: [{
+        type: 'text',
+        text: JSON.stringify(response)
+      }],
+    };
+  }
+)
+
+server.registerTool(
   'create_bug',
   {
     title: 'Create a new bug card',
@@ -808,10 +928,13 @@ server.registerTool(
       teamId: z.string()
         .optional()
         .describe('Optional Team ID — if user gave a team name, resolve it via "get_teams" first; defaults to TP_TEAM_ID from config'),
+      entityStateId: z.string()
+        .optional()
+        .describe('Optional Entity State ID — if user gave a state name, resolve it via "get_bug_workflows" first; defaults to "Done"'),
     },
   },
-  async ({ title, bugContent, origin, projectId, teamId }) => {
-    const bugResponse = await tp.createBugOnly<TP.Bug>({ title, bugContent, origin, projectId, teamId });
+  async ({ title, bugContent, origin, projectId, teamId, entityStateId }) => {
+    const bugResponse = await tp.createBugOnly<TP.Bug>({ title, bugContent, origin, projectId, teamId, entityStateId });
 
     if (!bugResponse) {
       return {
@@ -1537,7 +1660,103 @@ server.registerTool(
         text: JSON.stringify(items)
       }],
     };
+  }
+)
+
+server.registerTool(
+  'get_bug_workflows',
+  {
+    title: 'Get bug workflows',
+    description: 'Get all Targetprocess bug workflows',
+  },
+  async ({ }) => {
+    const response = await tp.getBugWorkflows<TP.TpResponseV2<TP.WorkflowV2>>()
+
+    if (!response) {
+      return {
+        content: [{
+          type: 'text',
+          text: `Failed to get bug entity statuses, JSON: ${JSON.stringify(response, null, 2)}`
+        }],
+      }
+    }
+
+    const items = response.items || []
+    if (items.length === 0) {
+      return {
+        content: [{
+          type: 'text',
+          text: `No status data found for workflows`
+        }],
+      }
+    }
+
+    const workflows = items.map((w) => ({
+      id: w.id,
+      name: w.name,
+      processId: w.process,
+      entityType: w.entityType,
+      entityStates: w.entityStates.map((es) => ({
+        id: es.id,
+        name: es.name,
+      })),
+    }))
+
+    return {
+      content: [{
+        type: 'text',
+        text: JSON.stringify(workflows)
+      }],
+    };
   })
+
+server.registerTool(
+  'get_user_story_workflows',
+  {
+    title: 'Get User Story workflows',
+    description: 'Get all Targetprocess user story workflows',
+  },
+  async ({ }) => {
+    const response = await tp.getUserStoryWorkflows<TP.TpResponseV2<TP.WorkflowV2>>()
+
+    if (!response) {
+      return {
+        content: [{
+          type: 'text',
+          text: `Failed to get user story entity statuses, JSON: ${JSON.stringify(response, null, 2)}`
+        }],
+      }
+    }
+
+    const items = response.items || []
+    if (items.length === 0) {
+      return {
+        content: [{
+          type: 'text',
+          text: `No status data found for workflows`
+        }],
+      }
+    }
+
+    const workflows = items.map((w) => ({
+      id: w.id,
+      name: w.name,
+      processId: w.process,
+      entityType: w.entityType,
+      entityStates: w.entityStates.map((es) => ({
+        id: es.id,
+        name: es.name,
+      })),
+    }))
+
+    return {
+      content: [{
+        type: 'text',
+        text: JSON.stringify(workflows)
+      }],
+    };
+  }
+)
 
 server.registerTool(
   'get_card_current_status',
