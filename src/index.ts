@@ -707,11 +707,13 @@ server.registerTool(
     title: 'Create a new bug card based on provided card id',
     description: `Create a new bug card based on provided card id that summarizes the problem in concise, descriptive manner answering questions What? Where? When?, and content explaining what happened in detail. 
       NOTE: this tool requires a user story or bug card as a reference (i.e. card ID).
-      CRITICAL WORKFLOW: Before calling this tool, you MUST follow these steps: 
+      CRITICAL WORKFLOW: Before calling this tool, you MUST follow these steps:
         1) IF you already have user story or bug card content, proceed to step 3 skipping step 2;
         2) ELSE call "get_user_story_content" tool or "get_bug_content" tool to get user story or bug card content;
         3) format the new bug inside html <div> tags with Issue Description, Steps to Reproduce, Expected Behavior, Actual Behavior sections (note: section titles should be wrapped in <h3> tags, e.g. <h3>Issue Description</h3>);
-        4) add a comment to the card with created bug Id and its Title`,
+        4) IF the user specified a team by name (not ID), call "get_teams" to find the matching team and use its ID as teamId;
+        5) IF the user specified a project by name (not ID), call "get_projects" to find the matching project and use its ID as projectId;
+        6) add a comment to the card with created bug Id and its Title`,
     inputSchema: {
       title: z.string()
         .describe('Bug card title that summarizes the problem in concise, descriptive, and actionable manner, enabling a developer to understand the issue without opening the report'),
@@ -744,10 +746,10 @@ server.registerTool(
         .describe('Where the bug was found, defaults to "Manual QA"'),
       projectId: z.string()
         .optional()
-        .describe('Optional Project ID — defaults to TP_PROJECT_ID from config'),
+        .describe('Optional Project ID — if user gave a project name, resolve it via "get_projects" first; defaults to TP_PROJECT_ID from config'),
       teamId: z.string()
         .optional()
-        .describe('Optional Team ID — defaults to TP_TEAM_ID from config'),
+        .describe('Optional Team ID — if user gave a team name, resolve it via "get_teams" first; defaults to TP_TEAM_ID from config'),
     },
   },
   async ({ title, card, bugContent, origin, projectId, teamId }) => {
@@ -778,7 +780,9 @@ server.registerTool(
     description: `Create a new bug card that summarizes the problem in concise, descriptive manner answering questions "What? Where? When?" and content explaining what happened in detail.
       NOTE: this tool does not require a user story or bug card reference.
       CRITICAL WORKFLOW: Before calling this tool, you MUST follow these steps:
-        1) format the new bug inside html <div> tags with Issue Description, Steps to Reproduce, Expected Behavior, Actual Behavior sections (note: section titles should be wrapped in <h3> tags, e.g. <h3>Issue Description</h3>);`,
+        1) format the new bug inside html <div> tags with Issue Description, Steps to Reproduce, Expected Behavior, Actual Behavior sections (note: section titles should be wrapped in <h3> tags, e.g. <h3>Issue Description</h3>, step to reproduce should be wrapped in <ol>);
+        2) IF the user specified a team by name (not ID), call "get_teams" to find the matching team and use its ID as teamId;
+        3) IF the user specified a project by name (not ID), call "get_projects" to find the matching project and use its ID as projectId;`,
     inputSchema: {
       title: z.string()
         .describe('Bug card title that summarizes the problem in concise, descriptive, and actionable manner, enabling a developer to understand the issue without opening the report'),
@@ -800,10 +804,10 @@ server.registerTool(
         .describe('Where the bug was found, defaults to "Manual QA"'),
       projectId: z.string()
         .optional()
-        .describe('Optional Project ID — defaults to TP_PROJECT_ID from config'),
+        .describe('Optional Project ID — if user gave a project name, resolve it via "get_projects" first; defaults to TP_PROJECT_ID from config'),
       teamId: z.string()
         .optional()
-        .describe('Optional Team ID — defaults to TP_TEAM_ID from config'),
+        .describe('Optional Team ID — if user gave a team name, resolve it via "get_teams" first; defaults to TP_TEAM_ID from config'),
     },
   },
   async ({ title, bugContent, origin, projectId, teamId }) => {
@@ -1454,6 +1458,53 @@ server.registerTool(
         type: 'text',
         text: JSON.stringify({ created, failed })
       }]
+    }
+  }
+)
+
+server.registerTool(
+  'get_card_status',
+  {
+    title: 'Get card status',
+    description: 'Get the EntityState, TeamState, and assigned teams for a TP card (UserStory, Bug, or Feature) by ID',
+    inputSchema: {
+      id: z.string()
+        .min(5)
+        .max(6)
+        .describe('TP card ID (e.g. 146055)'),
+      resourceType: z.enum(['UserStory', 'Bug', 'Feature'])
+        .default('UserStory')
+        .optional()
+        .describe('Type of the TP card — UserStory, Bug, or Feature (default: UserStory)'),
+    },
+  },
+  async ({ id, resourceType = 'UserStory' }) => {
+    const response = await tp.getCardStatus<TP.TpResponseV2<TP.CardStatus>>(id, resourceType)
+
+    if (!response) {
+      return {
+        content: [{
+          type: 'text',
+          text: `Failed to get card status for ${resourceType} id: ${id}`
+        }],
+      }
+    }
+
+    const items = response.items || []
+    if (items.length === 0) {
+      return {
+        content: [{
+          type: 'text',
+          text: `No status data found for ${resourceType} id: ${id}`,
+        }],
+      }
+    }
+
+    return {
+      content: [{
+        type: 'text',
+        text: JSON.stringify(items[0])
+      }],
     }
   }
 )

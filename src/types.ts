@@ -18,7 +18,7 @@ export interface Config {
 
 // ── TP types ───────────────────────────────────────────────────────────────────────
 export type TpClientParameters = {
-  pathParam: { [key: string]: string | undefined }
+  pathParam: string[]
   param: { [key: string]: string | number }
   apiVersion?: string
 }
@@ -529,6 +529,44 @@ export interface TpResultItemV2WithCustomFields {
     name: string
     value: string
   }[]
+}
+
+export interface CardStatusEntityState {
+  id: number
+  name: string
+  nextStates: any[]
+  workflowId: number
+  subEntityStatesWorkflowIds: number[]
+}
+
+export interface CardStatusTeamEntityState {
+  id: number
+  name: string
+  workflowId: number
+}
+
+export interface CardStatusTeamState {
+  id: number
+  team: {
+    id: number
+    name: string
+    emojiIcon: string
+  }
+  entityState: CardStatusTeamEntityState
+}
+
+export interface CardStatusAssignedTeam {
+  teamAssignmentId: number
+  id: number
+  name: string
+  emojiIcon: string
+}
+
+export interface CardStatus {
+  project: { id: number }
+  entityState: CardStatusEntityState
+  teamState: CardStatusTeamState
+  teams: CardStatusAssignedTeam[]
 }
 
 export interface Context {

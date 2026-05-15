@@ -20,8 +20,8 @@ export class TpClient {
 
   private params(params: TpClientParameters): string {
     let _url = this.baseUrl + (params.apiVersion || this.v1)
-    for (const [key, value] of Object.entries(params.pathParam)) {
-      _url += value ? `/${key}/${value}` : `/${key}`
+    for (const segment of params.pathParam) {
+      _url += `/${segment}`
     }
 
     let _urlParams = []
@@ -92,7 +92,7 @@ export class TpClient {
 
   async getUserStory<T>(userStoryId: string): Promise<T> {
     const response = await this.get<T>({
-      pathParam: { "userStories": userStoryId },
+      pathParam: ["userStories", userStoryId],
       param: { "format": "json" },
     }) as T
 
@@ -101,7 +101,7 @@ export class TpClient {
 
   async getBug<T>(bugId: string): Promise<T> {
     const response = await this.get<T>({
-      pathParam: { "bugs": bugId },
+      pathParam: ["bugs", bugId],
       param: { "format": "json" }
     }) as T
 
@@ -110,7 +110,7 @@ export class TpClient {
 
   async getFeature<T>(featureId: string): Promise<T> {
     const response = await this.get<T>({
-      pathParam: { "features": featureId },
+      pathParam: ["features", featureId],
       param: { "format": "json" }
     }) as T
 
@@ -143,7 +143,7 @@ export class TpClient {
     }
 
     return this.post<any, T>({
-      pathParam: { "bugs": '' },
+      pathParam: ["bugs"],
       param: { "format": "json" },
     }, bug) as T
   }
@@ -168,7 +168,7 @@ export class TpClient {
     }
 
     return this.post<any, T>({
-      pathParam: { "bugs": '' },
+      pathParam: ["bugs"],
       param: { "format": "json" },
     }, bug) as T
   }
@@ -185,7 +185,7 @@ export class TpClient {
     if (releaseId) userStory["Release"] = { "Id": releaseId }
 
     return this.post<any, T>({
-      pathParam: { "UserStories": '' },
+      pathParam: ["UserStories"],
       param: { "format": "json" },
     }, userStory) as T
   }
@@ -202,7 +202,7 @@ export class TpClient {
     if (releaseId) feature["Release"] = { "Id": releaseId }
 
     return this.post<any, T>({
-      pathParam: { "Features": '' },
+      pathParam: ["Features"],
       param: { "format": "json" },
     }, feature) as T
   }
@@ -230,7 +230,7 @@ export class TpClient {
     }
 
     return this.post<any, T>({
-      pathParam: { "bugs": '' },
+      pathParam: ["bugs"],
       param: { "format": "json" },
     }, bug) as T
   }
@@ -246,7 +246,7 @@ export class TpClient {
     }
 
     return this.post<any, T>({
-      pathParam: { "testCases": '' },
+      pathParam: ["testCases"],
       param: { "format": "json" },
     }, testCase) as T
   }
@@ -282,7 +282,7 @@ export class TpClient {
     if (options?.endDate) testPlan["EndDate"] = options.endDate
 
     return this.post<any, T>({
-      pathParam: { "testPlans": '' },
+      pathParam: ["testPlans"],
       param: { "format": "json" },
     }, testPlan) as T
   }
@@ -299,7 +299,7 @@ export class TpClient {
     }
 
     return this.post<any, T>({
-      pathParam: { "comments": '' },
+      pathParam: ["comments"],
       param: { "format": "json" },
     }, commentData) as T
   }
@@ -312,17 +312,14 @@ export class TpClient {
     }
 
     return this.post<any, T>({
-      pathParam: { "testSteps": '' },
+      pathParam: ["testSteps"],
       param: { "format": "json" },
     }, testStepData) as T
   }
 
   async getBugComments<T>(bugId: string, results: number = 25): Promise<T> {
     const response = await this.get<T>({
-      pathParam: {
-        "Bugs": bugId,
-        "Comments": "",
-      },
+      pathParam: ["Bugs", bugId, "Comments"],
       param: {
         "format": "json",
         "take": results,
@@ -334,10 +331,7 @@ export class TpClient {
 
   async getUserStoryComments<T>(userStoryId: string, results: number = 25): Promise<T> {
     const response = await this.get<T>({
-      pathParam: {
-        "UserStories": userStoryId,
-        "Comments": "",
-      },
+      pathParam: ["UserStories", userStoryId, "Comments"],
       param: {
         "format": "json",
         "take": results,
@@ -349,7 +343,7 @@ export class TpClient {
 
   async searchContainsNameText<T>({ text, entityType }: { text: string, entityType: "Generals" | "UserStories" | "Bugs" | "Features" }): Promise<T> {
     return this.get<T>({
-      pathParam: { [entityType]: '' },
+      pathParam: [entityType],
       param: {
         "format": "json",
         "take": "25",
@@ -361,7 +355,7 @@ export class TpClient {
 
   async searchContainsDescriptionText<T>({ text, entityType }: { text: string, entityType: "Generals" | "UserStories" | "Bugs" | "Features" }): Promise<T> {
     return this.get<T>({
-      pathParam: { [entityType]: '' },
+      pathParam: [entityType],
       param: {
         "where": `Description contains '${text}' and EntityState.Name eq 'Done'`,
         "format": "json",
@@ -372,7 +366,7 @@ export class TpClient {
 
   async getCurrentReleases<T>(): Promise<T> {
     return this.get<T>({
-      pathParam: { "Releases": '' },
+      pathParam: ["Releases"],
       param: {
         "format": "json",
         "where": `IsCurrent eq 'true'`,
@@ -383,7 +377,7 @@ export class TpClient {
   async getReleaseUserStories<T>({ name, results = 50, withDescription = false }: { name: string, results?: number, withDescription?: boolean }): Promise<T> {
     const includeFilter = withDescription ? "[Name, Description, Id]" : "[Name, Id]"
     return this.get<T>({
-      pathParam: { "UserStories": '' },
+      pathParam: ["UserStories"],
       param: {
         "format": "json",
         "take": results,
@@ -396,11 +390,11 @@ export class TpClient {
   async getReleaseOpenUserStories<T>({ name, results = 100, withDescription = false }: { name: string, results?: number, withDescription?: boolean }): Promise<T> {
     const includeFilter = withDescription ? "[Name, Description, Id]" : "[Name, Id]"
     return this.get<T>({
-      pathParam: { "UserStories": '' },
+      pathParam: ["UserStories"],
       param: {
         "format": "json",
         "take": results,
-        "where": `Release.Name eq '${name}' and EntityState.Name ne 'Closed' and EntityState.Name ne 'Done' and EntityState.Name ne 'Passed Dev01  QA' and EntityState.Name ne 'Ready to Deploy to prod'`,
+        "where": `Release.Name eq '${name}' and EntityState.Name ne 'Closed' and EntityState.Name ne 'Done' and EntityState.Name ne 'Passed Dev01  QA' and EntityState.Name ne 'Ready to Deploy to prod'`,
         "include": includeFilter,
       }
     }) as T
@@ -409,11 +403,11 @@ export class TpClient {
   async getReleaseOpenBugs<T>({ name, results = 200, withDescription = false }: { name: string, results?: number, withDescription?: boolean }): Promise<T> {
     const includeFilter = withDescription ? "[Name, Description, Id]" : "[Name, Id]"
     return this.get<T>({
-      pathParam: { "Bugs": '' },
+      pathParam: ["Bugs"],
       param: {
         "format": "json",
         "take": results,
-        "where": `Release.Name eq '${name}' and EntityState.Name ne 'Closed' and EntityState.Name ne 'Done' and EntityState.Name ne 'Passed Dev01  QA' and EntityState.Name ne 'Ready to Deploy to prod'`,
+        "where": `Release.Name eq '${name}' and EntityState.Name ne 'Closed' and EntityState.Name ne 'Done' and EntityState.Name ne 'Passed Dev01  QA' and EntityState.Name ne 'Ready to Deploy to prod'`,
         "include": includeFilter,
       }
     }) as T
@@ -422,7 +416,7 @@ export class TpClient {
   async getReleaseBugs<T>({ name, results = 100, withDescription = false }: { name: string, results?: number, withDescription?: boolean }): Promise<T> {
     const includeFilter = withDescription ? "[Name, Description, Id]" : "[Name, Id]"
     return this.get<T>({
-      pathParam: { "Bugs": '' },
+      pathParam: ["Bugs"],
       param: {
         "format": "json",
         "take": results,
@@ -435,7 +429,7 @@ export class TpClient {
   async getReleaseFeatures<T>({ name, results = 50, withDescription = false }: { name: string, results?: number, withDescription?: boolean }): Promise<T> {
     const includeFilter = withDescription ? "[Name, Description, Id]" : "[Name, Id]"
     return this.get<T>({
-      pathParam: { "Features": '' },
+      pathParam: ["Features"],
       param: {
         "format": "json",
         "take": results,
@@ -447,7 +441,7 @@ export class TpClient {
 
   async getFeatureUserStories<T>(featureId: string): Promise<T> {
     return this.get<T>({
-      pathParam: { "features": '' },
+      pathParam: ["features"],
       param: {
         "format": "json",
         "where": `(id==${featureId})`,
@@ -459,7 +453,7 @@ export class TpClient {
 
   async getUserStoriesIdsByFeatureId<T>(featureId: string): Promise<T> {
     return this.get<T>({
-      pathParam: { "userstories": '' },
+      pathParam: ["userstories"],
       param: {
         "format": "json",
         "where": `(Feature.Id==${featureId})`,
@@ -471,7 +465,7 @@ export class TpClient {
 
   async getUserStoryTestPlan<T>(userStoryId: string): Promise<T> {
     return this.get<T>({
-      pathParam: { "userStories": userStoryId },
+      pathParam: ["userStories", userStoryId],
       param: {
         "format": "json",
         "select": `{id,storyName:name,linkedtestplan}`,
@@ -481,16 +475,9 @@ export class TpClient {
   }
 
   async getCardTestPlan<T>(cardId: string, resourceType: 'UserStory' | 'Bug' | 'Feature' = 'UserStory'): Promise<T> {
-    let requestPath = ""
-    if (resourceType === 'UserStory') {
-      requestPath = "userStories"
-    } else if (resourceType === 'Bug') {
-      requestPath = "bugs"
-    } else if (resourceType === 'Feature') {
-      requestPath = "features"
-    }
+    const pathMap = { UserStory: "userStories", Bug: "bugs", Feature: "features" }
     return this.get<T>({
-      pathParam: { [requestPath]: cardId },
+      pathParam: [pathMap[resourceType], cardId],
       param: {
         "format": "json",
         "select": `{id,linkedtestplan}`,
@@ -500,42 +487,49 @@ export class TpClient {
 
   async getTestPlanTestCases<T>(testPlanId: string): Promise<T> {
     return this.get<T>({
-      pathParam: {
-        "testPlans": testPlanId,
-        "testcases": "",
-      },
+      pathParam: ["testPlans", testPlanId, "testcases"],
       param: { "format": "json" },
     }) as T
   }
 
   async getTestCaseSteps<T>(testCaseId: string): Promise<T> {
     return this.get<T>({
-      pathParam: {
-        "testCases": testCaseId,
-        "teststeps": "",
-      },
-      param: { "format": "json", },
+      pathParam: ["testCases", testCaseId, "teststeps"],
+      param: { "format": "json" },
     }) as T
   }
 
   async getProjects<T>(): Promise<T> {
     return this.get<T>({
-      pathParam: { "Projects": '' },
+      pathParam: ["Projects"],
       param: { "format": "json" },
     }) as T
   }
 
   async getTeams<T>(): Promise<T> {
     return this.get<T>({
-      pathParam: { "Teams": '' },
+      pathParam: ["Teams"],
       param: { "format": "json" },
+    }) as T
+  }
+
+  async getCardStatus<T>(cardId: string, resourceType: 'UserStory' | 'Bug' | 'Feature' = 'UserStory'): Promise<T> {
+    const pathMap = { UserStory: 'userStory', Bug: 'bug', Feature: 'feature' }
+    return this.get<T>({
+      pathParam: [pathMap[resourceType]],
+      param: {
+        "select": `{Project:{Project.Id},EntityState:{EntityState.Id,EntityState.Name,EntityState.NextStates,EntityState.Workflow.Id as WorkflowId},TeamState:{ResponsibleTeam.Id,Team:{ResponsibleTeam.Team.Id,ResponsibleTeam.Team.Name},EntityState:{ResponsibleTeam.EntityState.Id,ResponsibleTeam.EntityState.Name,ResponsibleTeam.EntityState.Workflow.Id as WorkflowId}},AssignedTeams.Select({TeamAssignmentId:Id,Id:Team.Id,Name:Team.Name}) as Teams}`,
+        "where": `(id=${cardId})`,
+        "take": "1",
+      },
+      apiVersion: this.v2
     }) as T
   }
 
   async getContext<T>(): Promise<T> {
     return this.get<T>({
-      pathParam: { "Context": '' },
-      param: { "format": "json", }
+      pathParam: ["Context"],
+      param: { "format": "json" }
     }) as T
   }
 
