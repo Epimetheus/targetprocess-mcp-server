@@ -16,6 +16,23 @@ export interface Config {
   }
 }
 
+export interface BugInputSchema {
+  title?: string,
+  bugContent?: string,
+  origin?: string,
+  projectId?: string,
+  teamId?: string,
+  entityStateId?: string
+}
+
+export interface UserStoryInputSchema {
+  title?: string,
+  description?: string,
+  projectId?: string,
+  teamId?: string,
+  entityStateId?: string
+}
+
 // ── TP types ───────────────────────────────────────────────────────────────────────
 export type TpClientParameters = {
   pathParam: string[]
@@ -453,6 +470,12 @@ export interface Process {
   Id: number
 }
 
+export interface ProcessV2 {
+  resourceType: string
+  id: number
+  name: string
+}
+
 export interface EntityState {
   ResourceType: string
   Id: number
@@ -510,6 +533,7 @@ export interface LoggedUser {
 }
 
 export interface TpResponseV2<TpResponseItemsV2> {
+  next: string
   items: TpResponseItemsV2[]
 }
 
@@ -518,6 +542,12 @@ export interface TpResponseItemsV2<T> {
 }
 
 export interface TpResultItemV2 {
+  id: number
+  name: string
+  resourceType: string
+}
+
+export interface GeneralV2 {
   id: number
   name: string
   resourceType: string
@@ -534,7 +564,12 @@ export interface TpResultItemV2WithCustomFields {
 export interface CardStatusEntityState {
   id: number
   name: string
-  nextStates: any[]
+  nextStates: {
+    items: GeneralV2[]
+  }
+  previousStates: {
+    items: GeneralV2[]
+  }
   workflowId: number
   subEntityStatesWorkflowIds: number[]
 }

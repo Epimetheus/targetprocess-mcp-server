@@ -1,6 +1,6 @@
 import { readFileSync } from "fs";
 import { basename } from "path";
-import { TpClientParameters, TpResponse } from "./types.js";
+import { TpClientParameters, TpResponse, BugInputSchema, UserStoryInputSchema } from "./types.js";
 import { config } from "./config.js";
 
 export class TpClient {
@@ -148,8 +148,34 @@ export class TpClient {
     }, bug) as T
   }
 
-  async createBugOnly<T>({ title, bugContent, origin = "Manual QA", projectId, teamId }: { title: string, bugContent: string, origin?: string, projectId?: string, teamId?: string }): Promise<T> {
-    const bug = {
+
+  async updateUserStory<T>({ title, description, projectId, teamId }: UserStoryInputSchema): Promise<T> {
+    const userStory: Record<string, any> = {
+      "Name": title,
+      "Description": description,
+      "Project": {
+        "Id": projectId || config.tp.projectId
+      },
+      "assignedTeams": [
+        {
+          "entityState": {
+            "id": 7407
+          },
+          "id": 84252,
+          "team": {
+            "id": teamId || config.tp.teamId
+          }
+        }
+      ]
+    }
+    return this.post<any, T>({
+      pathParam: ["UserStories"],
+      param: { "format": "json" },
+    }, userStory) as T
+  }
+
+  async createBugOnly<T>({ title, bugContent, origin = "Manual QA", projectId, teamId }: BugInputSchema): Promise<T> {
+    const bug: Record<string, any> = {
       "Name": title,
       "Project": {
         "Id": projectId || config.tp.projectId
@@ -502,6 +528,36 @@ export class TpClient {
   async getProjects<T>(): Promise<T> {
     return this.get<T>({
       pathParam: ["Projects"],
+      param: { "format": "json" },
+    }) as T
+  }
+
+  async getProcessWorkflows<T>({ processId }: { processId?: string }): Promise<T> {
+    return this.get<T>({
+      pathParam: ["Process"],
+      param: {
+        "format": "json",
+        "where": `id=(${processId})`,
+        "select": `{Workflows}`
+      },
+      apiVersion: this.v2
+    }) as T
+  }
+
+  async getUserStories<T>({ take = 100 }: { take?: number }): Promise<T> {
+    return this.get<T>({
+      pathParam: ["userStories"],
+      param: {
+        "format": "json",
+        "take": take,
+      },
+      apiVersion: this.v2
+    }) as T
+  }
+
+  async getProcesses<T>(): Promise<T> {
+    return this.get<T>({
+      pathParam: ["Processes"],
       param: { "format": "json" },
     }) as T
   }

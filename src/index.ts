@@ -1463,7 +1463,84 @@ server.registerTool(
 )
 
 server.registerTool(
-  'get_card_status',
+  'get_process_workflows',
+  {
+    title: 'Get process workflows',
+    description: 'Get all Targetprocess process workflows',
+    inputSchema: {
+      processId: z.string()
+        .describe('Process ID (e.g. 145636)'),
+    },
+  },
+  async ({ processId }) => {
+    const response = await tp.getProcessWorkflows<TP.TpResponseV2<TP.ProcessV2>>({ processId })
+
+    if (!response) {
+      return {
+        content: [{
+          type: 'text',
+          text: `Failed to get process workflows, JSON: ${JSON.stringify(response, null, 2)}`
+        }],
+      }
+    }
+
+    const items = response.items || [];
+    if (items.length === 0) {
+      return {
+        content: [{
+          type: 'text',
+          text: `No process workflows found`,
+        }],
+      };
+    }
+
+    return {
+      content: [{
+        type: 'text',
+        text: JSON.stringify(items)
+      }],
+    };
+  }
+)
+
+server.registerTool(
+  'get_processes',
+  {
+    title: 'Get processes',
+    description: 'Get all Targetprocess processes',
+  },
+  async ({ }) => {
+    const response = await tp.getProcesses<TP.TpResponseV2<TP.ProcessV2>>()
+
+    if (!response) {
+      return {
+        content: [{
+          type: 'text',
+          text: `Failed to get processes, JSON: ${JSON.stringify(response, null, 2)}`
+        }],
+      }
+    }
+
+    const items = response.items || [];
+    if (items.length === 0) {
+      return {
+        content: [{
+          type: 'text',
+          text: `No processes found`,
+        }],
+      };
+    }
+
+    return {
+      content: [{
+        type: 'text',
+        text: JSON.stringify(items)
+      }],
+    };
+  })
+
+server.registerTool(
+  'get_card_current_status',
   {
     title: 'Get card status',
     description: 'Get the EntityState, TeamState, and assigned teams for a TP card (UserStory, Bug, or Feature) by ID',
