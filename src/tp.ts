@@ -53,7 +53,6 @@ export class TpClient {
   private async get<T>(params: TpClientParameters): Promise<T | null> {
     params.param["access_token"] = this.token
     let _url = this.params(params)
-    console.error(JSON.stringify({ "TP_URL": _url }, null, 2))
     try {
       const response = await fetch(_url, {
         method: "GET",
@@ -488,6 +487,18 @@ export class TpClient {
         "format": "json",
         "where": `(id==${featureId})`,
         "select": `{userStories}`,
+      },
+      apiVersion: this.v2
+    }) as T
+  }
+
+  async getUserStoryBugs<T>(userStoryId: string): Promise<T> {
+    return this.get<T>({
+      pathParam: ["userstories"],
+      param: {
+        "format": "json",
+        "where": `(id==${userStoryId})`,
+        "select": `{bugs}`,
       },
       apiVersion: this.v2
     }) as T

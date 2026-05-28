@@ -1238,12 +1238,45 @@ server.registerTool(
       }
     }
 
-    const featureItems = items[0].items || []
+    return {
+      content: [{
+        type: 'text',
+        text: JSON.stringify(items)
+      }],
+    }
+  }
+);
+
+server.registerTool(
+  'get_user_story_bugs',
+  {
+    title: 'Get user story bugs',
+    description: 'Get bugs linked to a TP user story by its ID',
+    inputSchema: {
+      id: z.string()
+        .min(5)
+        .max(6)
+        .describe('TP user story ID (e.g. 145789)'),
+    },
+  },
+  async ({ id }) => {
+    const response = await tp.getUserStoryBugs<TP.TpResponseV2<TP.TpResponseItemsV2<TP.TpResultItemV2>>>(id)
+
+    if (!response) {
+      return {
+        content: [{
+          type: 'text',
+          text: `Failed to get bugs for user story id: ${id}`
+        }],
+      }
+    }
+
+    const items = response.items || []
     if (items.length === 0) {
       return {
         content: [{
           type: 'text',
-          text: `No user stories found for feature id: ${id}`,
+          text: `No bugs found for user story id: ${id}`,
         }],
       }
     }
@@ -1251,7 +1284,7 @@ server.registerTool(
     return {
       content: [{
         type: 'text',
-        text: JSON.stringify(featureItems)
+        text: JSON.stringify(items)
       }],
     }
   }

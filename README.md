@@ -45,6 +45,9 @@ Features
 - `get_feature_user_stories` — Get all user stories for a feature by its ID (id)
 - `get_not_covered_user_stories_in_feature` — Get user stories in a feature not yet covered by tests, includes `covered` field based on "Test Automation" custom field (id)
 
+User Stories
+- `get_user_story_bugs` — Get all bugs linked to a user story by its ID (id)
+
 Cards — Read
 - `get_card_current_status` — Get EntityState, TeamState, and assigned teams for a card (id, optional resourceType: UserStory | Bug | Feature, default: UserStory)
 - `get_bug_content` — Fetch full content of a bug by ID (id)
