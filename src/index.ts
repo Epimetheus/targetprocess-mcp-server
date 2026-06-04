@@ -520,6 +520,98 @@ server.registerTool(
   }
 );
 
+server.registerTool('get_users', {
+  title: 'Get users',
+  description: 'Get all users',
+},
+  async () => {
+    const response = await tp.getUsers<TP.TpResponse<TP.LoggedUser>>()
+
+    if (!response) {
+      return {
+        content: [{
+          type: 'text',
+          text: `Failed to get users, JSON: ${JSON.stringify(response, null, 2)}`
+        }],
+      }
+    }
+    const items = response.Items || [];
+    if (items.length === 0) {
+      return {
+        content: [{
+          type: 'text',
+          text: `No users found`,
+        }],
+      };
+    }
+
+    return {
+      content: [{
+        type: 'text',
+        text: JSON.stringify(items)
+      }],
+    };
+  }
+);
+
+server.registerTool(
+  'add_comment_with_user',
+  {
+    title: 'Adds provided content to TP card (user story) as a comment',
+    description: `Adds provided content as a comment to the specified tp card by id, e.g. 145789 and mentions the user in the comment
+    CRITICAL WORKFLOW:
+      1) call 'get_users' to get list of available users
+      2) find the user by email, first name, or last name in the users list
+      `,
+    inputSchema: {
+      id: z.string()
+        .min(5)
+        .max(6)
+        .describe('TP card id, usually user story or bug ID (e.g. 145789)'),
+      comment: z.string()
+        .describe('Comment content to add'),
+      user: z.object({
+        Email: z.string()
+          .describe('User email'),
+        FirstName: z.string()
+          .describe('User first name'),
+        LastName: z.string()
+          .describe('User last name'),
+        IsActive: z.boolean()
+          .describe('User is active'),
+      })
+        .describe('User to add to the comment, from "get_users" tool'),
+    },
+  },
+  async ({ id, comment, user }) => {
+    try {
+      const addCommentResponse = await tp.addCommentWithUser<TP.Comment>(id, comment, (user as TP.LoggedUser));
+      if (!addCommentResponse) {
+        return {
+          content: [{
+            type: 'text',
+            text: `Failed to add comment to user story id: ${id}`
+          }]
+        };
+      }
+      return {
+        content: [{
+          type: 'text',
+          text: JSON.stringify(addCommentResponse)
+        }],
+      };
+    } catch (error) {
+      console.error("Error adding comment to user story:", error);
+      return {
+        content: [{
+          type: 'text',
+          text: `Failed to add comment to user story id: ${id}`
+        }]
+      };
+    }
+  }
+)
+
 server.registerTool(
   'add_comment',
   {

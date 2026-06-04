@@ -88,7 +88,6 @@ export interface Comment {
   Owner: Owner
 }
 
-
 export interface UserStory {
   ResourceType: string
   Id: number
