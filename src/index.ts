@@ -1747,10 +1747,10 @@ server.registerTool(
   'get_user_story_workflows',
   {
     title: 'Get User Story workflows',
-    description: 'Get all Targetprocess user story workflows',
+    description: 'Get all Targetprocess user story workflows, with sub-states',
   },
   async ({ }) => {
-    const response = await tp.getUserStoryWorkflows<TP.TpResponseV2<TP.WorkflowV2>>()
+    const response = await tp.getUserStoryWorkflowsWithSubStates<TP.TpResponseV2<TP.WorkflowV2WithSubStates>>()
 
     if (!response) {
       return {
@@ -1771,12 +1771,13 @@ server.registerTool(
       }
     }
 
-    const workflows = items.map((w) => ({
+    const userStoryWorkflows = items.filter((w) => w.entityType.name === "UserStory")
+    const workflows = userStoryWorkflows.map((w) => ({
       id: w.id,
-      name: w.name,
-      processId: w.process,
-      entityType: w.entityType,
-      entityStates: w.entityStates.map((es) => ({
+      processId: w.workflow.process.id,
+      entityType: w.entityType.name,
+      entityState: w.name,
+      entitySubStates: w.subEntityStates.map((es) => ({
         id: es.id,
         name: es.name,
       })),

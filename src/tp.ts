@@ -609,6 +609,19 @@ export class TpClient {
     }) as T
   }
 
+  async getUserStoryWorkflowsWithSubStates<T>(): Promise<T> {
+    return this.get<T>({
+      pathParam: ["EntityState"],
+      param: {
+        "format": "json",
+        "select": `{id,name,isInitial,isFinal,isDefaultFinal,isPlanned,workflow:{workflow.id,process:{workflow.process.id}},entityType:{entityType.name},subEntityStates:subEntityStates.Select({id,name,entityType:{entityType.name},isInitial,isFinal,isDefaultFinal,isPlanned})}`,
+        "where": `(parentEntityState==null and workflow.process.id in [${config.tp.processId}])`,
+        "take": "1000",
+      },
+      apiVersion: this.v2
+    }) as T
+  }
+
   async getBugWorkflows<T>(): Promise<T> {
     return this.get<T>({
       pathParam: ["workflow"],

@@ -412,6 +412,12 @@ export interface EntityType {
   IsUnitInHourOnly: boolean
 }
 
+export interface EntityTypeV2 {
+  resourceType: string
+  id: number
+  name: string
+}
+
 export interface LastEditor {
   ResourceType: string
   Id: number
@@ -481,6 +487,14 @@ export interface Company {
 export interface Process {
   ResourceType: string
   Id: number
+}
+
+export interface ProcessListItem {
+  ResourceType: string
+  Id: number
+  Name: string
+  IsDefault: boolean
+  Description: string | null
 }
 
 export interface ProcessV2 {
@@ -556,6 +570,33 @@ export interface WorkflowV2 {
   process: string
   entityType: string
   entityStates: WorkflowEntityStateV2[]
+}
+
+export interface WorkflowV2WithSubStates {
+  id: number
+  name: string
+  isInitial: boolean
+  isFinal: boolean
+  isDefaultFinal: boolean
+  isPlanned: boolean
+  workflow: WorkflowProcessV2
+  entityType: EntityTypeV2
+  subEntityStates: SubEntityStateV2[]
+}
+
+export interface WorkflowProcessV2 {
+  id: number
+  process: { id: number }
+}
+
+export interface SubEntityStateV2 {
+  id: number
+  name: string
+  entityType: EntityTypeV2
+  isInitial: boolean
+  isFinal: boolean
+  isDefaultFinal: boolean
+  isPlanned: boolean
 }
 
 export interface WorkflowEntityStateV2 {
