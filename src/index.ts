@@ -15,6 +15,29 @@ import { handleGetBugContent } from "./handlers/get_bug_content.js";
 import { handleGetLoggedInUser } from "./handlers/get_logged_in_user.js";
 import { handleGetUserStoryContent } from "./handlers/get_user_story_content.js";
 import { handleGetCommitMessage } from "./handlers/get_commit_message.js";
+import { handleGetReleaseUserStories } from "./handlers/get_release_user_stories.js";
+import { handleGetReleaseBugs } from "./handlers/get_release_bugs.js";
+import { handleGetReleaseFeatures } from "./handlers/get_release_features.js";
+import { handleGetReleaseOpenBugs } from "./handlers/get_release_open_bugs.js";
+import { handleGetReleaseOpenUserStories } from "./handlers/get_release_open_user_stories.js";
+import { handleGetUsers } from "./handlers/get_users.js";
+import { handleGetTeams } from "./handlers/get_teams.js";
+import { handleAddComment } from "./handlers/add_comment.js";
+import { handleGetUserStoryComments } from "./handlers/get_user_story_comments.js";
+import { handleGetBugComments } from "./handlers/get_bug_comments.js";
+import { handleCreateBug } from "./handlers/create_bug.js";
+import { handleCreateUserStory } from "./handlers/create_user_story.js";
+import { handleCreateFeature } from "./handlers/create_feature.js";
+import { handleCreateTask } from "./handlers/create_task.js";
+import { handleUpdateBug } from "./handlers/update_bug.js";
+import { handleGetInProgressTasksAndBugs } from "./handlers/get_in_progress_tasks_and_bugs.js";
+import { handleListMyUserStories } from "./handlers/list_my_user_stories.js";
+import { handleListMyBugs } from "./handlers/list_my_bugs.js";
+import { handleLogTime } from "./handlers/log_time.js";
+import { handleGetMyTimeLogs } from "./handlers/get_my_time_logs.js";
+import { handleGetFeatureUserStories } from "./handlers/get_feature_user_stories.js";
+import { handleGetUserStoryBugs } from "./handlers/get_user_story_bugs.js";
+import { handleGetCardCurrentStatus } from "./handlers/get_card_current_status.js";
 
 const server = new McpServer(
   {
@@ -77,34 +100,7 @@ server.registerTool(
         .describe('Number of results to return, default is 50'),
     },
   },
-  async ({ name, results }) => {
-    const release = await tp.getReleaseUserStories<TP.TpResponse<TP.UserStory>>({ name, results })
-
-    if (!release) {
-      return {
-        content: [{
-          type: 'text',
-          text: `Failed to get ${name} release user stories, JSON: ${JSON.stringify(release, null, 2)}`
-        }],
-      }
-    }
-    const items = release.Items || [];
-    if (items.length == 0) {
-      return {
-        content: [{
-          type: "text",
-          text: `No release user stories found`,
-        }],
-      };
-    }
-
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(items)
-      }],
-    };
-  }
+  async ({ name, results }) => handleGetReleaseUserStories(tp, name, results)
 );
 
 server.registerTool(
@@ -121,34 +117,7 @@ server.registerTool(
         .describe('Number of results to return, default is 100'),
     },
   },
-  async ({ name, results }) => {
-    const release = await tp.getReleaseBugs<TP.TpResponse<TP.Bug>>({ name, results })
-
-    if (!release) {
-      return {
-        content: [{
-          type: 'text',
-          text: `Failed to get ${name} release bugs, JSON: ${JSON.stringify(release, null, 2)}`
-        }],
-      }
-    }
-    const items = release.Items || [];
-    if (items.length == 0) {
-      return {
-        content: [{
-          type: "text",
-          text: `No release bugs found`,
-        }],
-      };
-    }
-
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(items)
-      }],
-    };
-  }
+  async ({ name, results }) => handleGetReleaseBugs(tp, name, results)
 );
 
 server.registerTool(
@@ -165,34 +134,7 @@ server.registerTool(
         .describe('Number of results to return, default is 100'),
     },
   },
-  async ({ name, results }) => {
-    const release = await tp.getReleaseFeatures<TP.TpResponse<TP.Feature>>({ name, results })
-
-    if (!release) {
-      return {
-        content: [{
-          type: 'text',
-          text: `Failed to get ${name} release features, JSON: ${JSON.stringify(release, null, 2)}`
-        }],
-      }
-    }
-    const items = release.Items || [];
-    if (items.length == 0) {
-      return {
-        content: [{
-          type: "text",
-          text: `No release features found`,
-        }],
-      };
-    }
-
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(items)
-      }],
-    };
-  }
+  async ({ name, results }) => handleGetReleaseFeatures(tp, name, results)
 );
 
 server.registerTool(
@@ -210,34 +152,7 @@ server.registerTool(
         .describe('Include description in the response'),
     },
   },
-  async ({ name, withDescription }) => {
-    const release = await tp.getReleaseUserStories<TP.TpResponse<TP.Release>>({ name, withDescription })
-
-    if (!release) {
-      return {
-        content: [{
-          type: 'text',
-          text: `Failed to get ${name} release user stories, JSON: ${JSON.stringify(release, null, 2)}`
-        }],
-      }
-    }
-    const items = release.Items || [];
-    if (items.length == 0) {
-      return {
-        content: [{
-          type: "text",
-          text: `No release user stories found`,
-        }],
-      };
-    }
-
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(items)
-      }],
-    };
-  }
+  async ({ name, withDescription }) => handleGetReleaseUserStories(tp, name, undefined, withDescription)
 );
 
 server.registerTool(
@@ -256,34 +171,7 @@ server.registerTool(
         .describe('Include description in the response'),
     },
   },
-  async ({ name, results, withDescription }) => {
-    const release = await tp.getReleaseOpenBugs<TP.TpResponse<TP.Release>>({ name, results, withDescription })
-
-    if (!release) {
-      return {
-        content: [{
-          type: 'text',
-          text: `Failed to get ${name} release bugs, JSON: ${JSON.stringify(release, null, 2)}`
-        }],
-      }
-    }
-    const items = release.Items || [];
-    if (items.length == 0) {
-      return {
-        content: [{
-          type: "text",
-          text: `No release bugs found`,
-        }],
-      };
-    }
-
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(items)
-      }],
-    };
-  }
+  async ({ name, results, withDescription }) => handleGetReleaseOpenBugs(tp, name, results, withDescription)
 );
 
 server.registerTool(
@@ -302,34 +190,7 @@ server.registerTool(
         .describe('Include description in the response'),
     },
   },
-  async ({ name, results, withDescription }) => {
-    const release = await tp.getReleaseOpenUserStories<TP.TpResponse<TP.Release>>({ name, results, withDescription })
-
-    if (!release) {
-      return {
-        content: [{
-          type: 'text',
-          text: `Failed to get ${name} release user stories, JSON: ${JSON.stringify(release, null, 2)}`
-        }],
-      }
-    }
-    const items = release.Items || [];
-    if (items.length == 0) {
-      return {
-        content: [{
-          type: "text",
-          text: `No release user stories found`,
-        }],
-      };
-    }
-
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(items)
-      }],
-    };
-  }
+  async ({ name, results, withDescription }) => handleGetReleaseOpenUserStories(tp, name, results, withDescription)
 );
 
 server.registerTool('search_tp_cards', {
@@ -425,34 +286,7 @@ server.registerTool(
     title: 'Get users',
     description: 'Get all users',
   },
-  async () => {
-    const response = await tp.getUsers<TP.TpResponse<TP.User>>()
-
-    if (!response) {
-      return {
-        content: [{
-          type: 'text',
-          text: `Failed to get users, JSON: ${JSON.stringify(response, null, 2)}`
-        }],
-      }
-    }
-    const items = response.Items || [];
-    if (items.length === 0) {
-      return {
-        content: [{
-          type: 'text',
-          text: `No users found`,
-        }],
-      };
-    }
-
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(items)
-      }],
-    };
-  }
+  async () => handleGetUsers(tp)
 );
 
 server.registerTool(
@@ -527,33 +361,7 @@ server.registerTool(
         .describe('Comment content to add'),
     },
   },
-  async ({ id, comment }) => {
-    try {
-      const addCommentResponse = await tp.addComment<TP.Comment>(id, comment);
-      if (!addCommentResponse) {
-        return {
-          content: [{
-            type: 'text',
-            text: `Failed to add comment to user story, id: ${id}\n JSON: ${JSON.stringify(addCommentResponse, null, 2)}`
-          }]
-        };
-      }
-      return {
-        content: [{
-          type: 'text',
-          text: JSON.stringify(addCommentResponse)
-        }],
-      };
-    } catch (error) {
-      console.error("Error adding comment to user story:", error);
-      return {
-        content: [{
-          type: 'text',
-          text: `Failed to add comment to user story, id: ${id}\n Error: ${error}`
-        }]
-      };
-    }
-  }
+  async ({ id, comment }) => handleAddComment(tp, id, comment)
 )
 
 server.registerTool(
@@ -572,57 +380,7 @@ server.registerTool(
         .describe('Number of comments to return, default is 25'),
     },
   },
-  async ({ id, results }) => {
-    const response = await tp.getUserStoryComments<TP.TpResponse<TP.Comment>>(id, results)
-
-    if (!response) {
-      return {
-        content: [{
-          type: 'text',
-          text: `Failed to get comments for user story id: ${id}`
-        }],
-      }
-    }
-
-    const items = response.Items || []
-    if (items.length === 0) {
-      return {
-        content: [{
-          type: 'text',
-          text: `No comments found for user story id: ${id}`,
-        }],
-      }
-    }
-
-    let parsedItems = []
-    try {
-      parsedItems = items.map((item) => {
-        const dom = new JSDOM(`<html><body><div id="content">${item.Description}</div></body></html>`)
-        const descriptionText = dom.window.document.getElementById('content')?.textContent
-        return {
-          id: item.Id,
-          description: descriptionText,
-          createDate: item.CreateDate,
-          owner: item.Owner.FullName,
-        }
-      })
-    } catch (error) {
-      console.error("Error parsing user story comments:", error);
-      return {
-        content: [{
-          type: 'text',
-          text: `Failed to parse user story comments for user story id: ${id}`,
-        }],
-      }
-    }
-
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(parsedItems)
-      }],
-    }
-  }
+  async ({ id, results }) => handleGetUserStoryComments(tp, id, results)
 )
 
 server.registerTool(
@@ -641,57 +399,7 @@ server.registerTool(
         .describe('Number of comments to return, default is 25'),
     },
   },
-  async ({ id, results }) => {
-    const response = await tp.getBugComments<TP.TpResponse<TP.Comment>>(id, results)
-
-    if (!response) {
-      return {
-        content: [{
-          type: 'text',
-          text: `Failed to get comments for bug id: ${id}`
-        }],
-      }
-    }
-
-    const items = response.Items || []
-    if (items.length === 0) {
-      return {
-        content: [{
-          type: 'text',
-          text: `No comments found for bug id: ${id}`,
-        }],
-      }
-    }
-
-    let parsedItems = []
-    try {
-      parsedItems = items.map((item) => {
-        const dom = new JSDOM(`<html><body><div id="content">${item.Description}</div></body></html>`)
-        const descriptionText = dom.window.document.getElementById('content')?.textContent
-        return {
-          id: item.Id,
-          description: descriptionText,
-          createDate: item.CreateDate,
-          owner: item.Owner.FullName,
-        }
-      })
-    } catch (error) {
-      console.error("Error parsing bug comments:", error);
-      return {
-        content: [{
-          type: 'text',
-          text: `Failed to parse bug comments for bug id: ${id}`,
-        }],
-      }
-    }
-
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(parsedItems)
-      }],
-    }
-  }
+  async ({ id, results }) => handleGetBugComments(tp, id, results)
 )
 
 server.registerTool(
@@ -811,26 +519,8 @@ server.registerTool(
         .describe('Optional Entity State ID — if user gave a state name, resolve it via "get_bug_workflows" first; defaults to "Done"'),
     },
   },
-  async ({ id, title, bugContent, origin, projectId, teamId, entityStateId }) => {
-    const bugResponse = await tp.updateBug<any>({ id, title, bugContent, origin, projectId, teamId, entityStateId });
-
-    if (!bugResponse) {
-      return {
-        content: [{
-          type: 'text',
-          text: `Failed to update bug "${title}"\n JSON: ${JSON.stringify(bugResponse, null, 2)}`
-        }]
-      };
-    }
-
-
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(bugResponse)
-      }],
-    };
-  }
+  async ({ id, title, bugContent, origin, projectId, teamId, entityStateId }) =>
+    handleUpdateBug(tp, { id, title, bugContent, origin, projectId, teamId, entityStateId })
 )
 
 server.registerTool(
@@ -926,25 +616,8 @@ server.registerTool(
         .describe('Optional Entity State ID — if user gave a state name, resolve it via "get_bug_workflows" first; defaults to "Done"'),
     },
   },
-  async ({ title, bugContent, origin, projectId, teamId, entityStateId }) => {
-    const bugResponse = await tp.createBugOnly<TP.Bug>({ title, bugContent, origin, projectId, teamId, entityStateId });
-
-    if (!bugResponse) {
-      return {
-        content: [{
-          type: 'text',
-          text: `Failed to create bug "${title}"\n JSON: ${JSON.stringify(bugResponse, null, 2)}`
-        }]
-      };
-    }
-
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(bugResponse)
-      }],
-    };
-  }
+  async ({ title, bugContent, origin, projectId, teamId, entityStateId }) =>
+    handleCreateBug(tp, { title, bugContent, origin, projectId, teamId, entityStateId })
 )
 
 server.registerTool(
@@ -976,25 +649,8 @@ server.registerTool(
         .describe('Optional Team ID — defaults to TP_TEAM_ID from config'),
     },
   },
-  async ({ title, description, featureId, releaseId, projectId, teamId }) => {
-    const userStoryResponse = await tp.createUserStory<TP.UserStory>({ title, description, featureId, releaseId, projectId, teamId });
-
-    if (!userStoryResponse) {
-      return {
-        content: [{
-          type: 'text',
-          text: `Failed to create user story "${title}"\n JSON: ${JSON.stringify(userStoryResponse, null, 2)}`
-        }]
-      };
-    }
-
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(userStoryResponse)
-      }],
-    };
-  }
+  async ({ title, description, featureId, releaseId, projectId, teamId }) =>
+    handleCreateUserStory(tp, { title, description, featureId, releaseId, projectId, teamId })
 )
 
 server.registerTool(
@@ -1026,25 +682,8 @@ server.registerTool(
         .describe('Optional Team ID — defaults to TP_TEAM_ID from config'),
     },
   },
-  async ({ title, description, epicId, releaseId, projectId, teamId }) => {
-    const featureResponse = await tp.createFeature<TP.Feature>({ title, description, epicId, releaseId, projectId, teamId });
-
-    if (!featureResponse) {
-      return {
-        content: [{
-          type: 'text',
-          text: `Failed to create feature "${title}"\n JSON: ${JSON.stringify(featureResponse, null, 2)}`
-        }]
-      };
-    }
-
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(featureResponse)
-      }],
-    };
-  }
+  async ({ title, description, epicId, releaseId, projectId, teamId }) =>
+    handleCreateFeature(tp, { title, description, epicId, releaseId, projectId, teamId })
 )
 
 server.registerTool(
@@ -1209,35 +848,7 @@ server.registerTool(
         .describe('TP feature ID (e.g. 145636)'),
     },
   },
-  async ({ id }) => {
-    const response = await tp.getFeatureUserStories<TP.TpResponseV2<TP.TpResponseItemsV2<TP.TpResultItemV2>>>(id)
-
-    if (!response) {
-      return {
-        content: [{
-          type: 'text',
-          text: `Failed to get user stories for feature id: ${id}`
-        }],
-      }
-    }
-
-    const items = response.items || []
-    if (items.length === 0) {
-      return {
-        content: [{
-          type: 'text',
-          text: `No user stories found in outer items for feature id: ${id}`,
-        }],
-      }
-    }
-
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(items)
-      }],
-    }
-  }
+  async ({ id }) => handleGetFeatureUserStories(tp, id)
 );
 
 server.registerTool(
@@ -1252,35 +863,7 @@ server.registerTool(
         .describe('TP user story ID (e.g. 145789)'),
     },
   },
-  async ({ id }) => {
-    const response = await tp.getUserStoryBugs<TP.TpResponseV2<TP.TpResponseItemsV2<TP.TpResultItemV2>>>(id)
-
-    if (!response) {
-      return {
-        content: [{
-          type: 'text',
-          text: `Failed to get bugs for user story id: ${id}`
-        }],
-      }
-    }
-
-    const items = response.items || []
-    if (items.length === 0) {
-      return {
-        content: [{
-          type: 'text',
-          text: `No bugs found for user story id: ${id}`,
-        }],
-      }
-    }
-
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(items)
-      }],
-    }
-  }
+  async ({ id }) => handleGetUserStoryBugs(tp, id)
 );
 
 server.registerTool(
@@ -1298,35 +881,7 @@ server.registerTool(
     title: 'Get teams',
     description: 'Get all Targetprocess teams',
   },
-  async ({ }) => {
-    const response = await tp.getTeams<TP.TpResponse<TP.Team>>()
-
-    if (!response) {
-      return {
-        content: [{
-          type: 'text',
-          text: `Failed to get teams, JSON: ${JSON.stringify(response, null, 2)}`
-        }],
-      }
-    }
-
-    const items = response.Items || [];
-    if (items.length === 0) {
-      return {
-        content: [{
-          type: 'text',
-          text: `No teams found`,
-        }],
-      };
-    }
-
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(items.map((t) => ({ id: t.Id, name: t.Name })))
-      }],
-    };
-  }
+  async () => handleGetTeams(tp)
 );
 
 server.registerTool(
@@ -1745,35 +1300,7 @@ server.registerTool(
         .describe('Type of the TP card — UserStory, Bug, or Feature (default: UserStory)'),
     },
   },
-  async ({ id, resourceType = 'UserStory' }) => {
-    const response = await tp.getCardStatus<TP.TpResponseV2<TP.CardStatus>>(id, resourceType)
-
-    if (!response) {
-      return {
-        content: [{
-          type: 'text',
-          text: `Failed to get card status for ${resourceType} id: ${id}`
-        }],
-      }
-    }
-
-    const items = response.items || []
-    if (items.length === 0) {
-      return {
-        content: [{
-          type: 'text',
-          text: `No status data found for ${resourceType} id: ${id}`,
-        }],
-      }
-    }
-
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(items[0])
-      }],
-    }
-  }
+  async ({ id, resourceType = 'UserStory' }) => handleGetCardCurrentStatus(tp, id, resourceType)
 )
 
 server.registerTool(
@@ -1786,49 +1313,7 @@ server.registerTool(
         .describe('Targetprocess user ID (e.g. 123)'),
     },
   },
-  async ({ userId }) => {
-    const result = await tp.getInProgressTasksAndBugs(userId)
-
-    const tasks = result.tasks.map((t) => ({
-      type: 'Task',
-      id: t.Id,
-      name: t.Name,
-      state: t.EntityState?.Name,
-      userStoryId: t.UserStory?.Id,
-      userStoryName: t.UserStory?.Name,
-      featureId: t.UserStory?.Feature?.Id,
-      featureName: t.UserStory?.Feature?.Name,
-    }))
-
-    const bugs = result.bugs.map((b) => ({
-      type: 'Bug',
-      id: b.Id,
-      name: b.Name,
-      state: b.EntityState?.Name,
-      userStoryId: b.UserStory?.Id,
-      userStoryName: b.UserStory?.Name,
-      featureId: b.UserStory?.Feature?.Id ?? b.Feature?.Id,
-      featureName: b.UserStory?.Feature?.Name ?? b.Feature?.Name,
-    }))
-
-    const items = [...tasks, ...bugs]
-
-    if (items.length === 0) {
-      return {
-        content: [{
-          type: 'text',
-          text: `No in-progress tasks or bugs found for user ID: ${userId}`,
-        }],
-      }
-    }
-
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(items),
-      }],
-    }
-  }
+  async ({ userId }) => handleGetInProgressTasksAndBugs(tp, userId)
 );
 
 server.registerTool(
@@ -1848,25 +1333,8 @@ server.registerTool(
         .describe('Task description (optional)'),
     },
   },
-  async ({ title, userStoryId, description }) => {
-    const taskResponse = await tp.createTask<TP.Task>({ title, userStoryId, description });
-
-    if (!taskResponse) {
-      return {
-        content: [{
-          type: 'text',
-          text: `Failed to create task "${title}"\n JSON: ${JSON.stringify(taskResponse, null, 2)}`
-        }]
-      };
-    }
-
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(taskResponse)
-      }],
-    };
-  }
+  async ({ title, userStoryId, description }) =>
+    handleCreateTask(tp, { title, userStoryId, description })
 )
 
 server.registerTool(
@@ -1907,35 +1375,7 @@ server.registerTool(
         .describe('Pagination offset, default is 0'),
     },
   },
-  async ({ state, take, skip }) => {
-    const response = await tp.getMyUserStories<TP.TpResponse<TP.UserStory>>({ state, take, skip })
-
-    if (!response) {
-      return {
-        content: [{
-          type: 'text',
-          text: `Failed to get user stories, JSON: ${JSON.stringify(response, null, 2)}`
-        }],
-      }
-    }
-
-    const items = response.Items || []
-    if (items.length === 0) {
-      return {
-        content: [{
-          type: 'text',
-          text: `No user stories assigned to you${state ? ` with state "${state}"` : ''}`,
-        }],
-      }
-    }
-
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(items)
-      }],
-    }
-  }
+  async ({ state, take, skip }) => handleListMyUserStories(tp, { state, take, skip })
 )
 
 server.registerTool(
@@ -1957,35 +1397,7 @@ server.registerTool(
         .describe('Pagination offset, default is 0'),
     },
   },
-  async ({ state, take, skip }) => {
-    const response = await tp.getMyBugs<TP.TpResponse<TP.Bug>>({ state, take, skip })
-
-    if (!response) {
-      return {
-        content: [{
-          type: 'text',
-          text: `Failed to get bugs, JSON: ${JSON.stringify(response, null, 2)}`
-        }],
-      }
-    }
-
-    const items = response.Items || []
-    if (items.length === 0) {
-      return {
-        content: [{
-          type: 'text',
-          text: `No bugs assigned to you${state ? ` with state "${state}"` : ''}`,
-        }],
-      }
-    }
-
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(items)
-      }],
-    }
-  }
+  async ({ state, take, skip }) => handleListMyBugs(tp, { state, take, skip })
 )
 
 server.registerTool(
@@ -2010,25 +1422,8 @@ server.registerTool(
         .describe('ISO date string, defaults to today (e.g. "2024-05-21")'),
     },
   },
-  async ({ entityId, entityType, hours, description, date }) => {
-    const response = await tp.logTime<TP.TimeLog>({ entityId, entityType, hours, description, date })
-
-    if (!response) {
-      return {
-        content: [{
-          type: 'text',
-          text: `Failed to log time on ${entityType} id: ${entityId}`
-        }],
-      }
-    }
-
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(response)
-      }],
-    }
-  }
+  async ({ entityId, entityType, hours, description, date }) =>
+    handleLogTime(tp, { entityId, entityType, hours, description, date })
 )
 
 server.registerTool(
@@ -2043,35 +1438,7 @@ server.registerTool(
         .describe('Number of entries to return, default is 25'),
     },
   },
-  async ({ take }) => {
-    const response = await tp.getMyTimeLogs<TP.TpResponse<TP.TimeLog>>(take)
-
-    if (!response) {
-      return {
-        content: [{
-          type: 'text',
-          text: `Failed to get time logs, JSON: ${JSON.stringify(response, null, 2)}`
-        }],
-      }
-    }
-
-    const items = response.Items || []
-    if (items.length === 0) {
-      return {
-        content: [{
-          type: 'text',
-          text: `No time logs found`,
-        }],
-      }
-    }
-
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(items)
-      }],
-    }
-  }
+  async ({ take }) => handleGetMyTimeLogs(tp, take)
 )
 
 async function main() {

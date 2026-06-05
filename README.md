@@ -183,3 +183,32 @@ cd targetprocess-mcp-server
 npm install
 npm run build
 ```
+
+## Testing
+
+Tests live in `tests/` and use [Vitest](https://vitest.dev/). All tool handlers are extracted to `src/handlers/` and tested with mocked `TpClient` instances — no network calls are made.
+
+```bash
+npx vitest run        # run all tests once
+npx vitest            # watch mode
+```
+
+### Coverage
+
+**31 of 44 tools (70%) are covered by unit tests.**
+
+| Test file | Handlers covered |
+|---|---|
+| `get_bug_content.test.ts` | `get_bug_content` |
+| `get_user_story_content.test.ts` | `get_user_story_content` |
+| `get_commit_message.test.ts` | `get_commit_message` |
+| `get_current_releases.test.ts` | `get_current_releases` |
+| `get_projects.test.ts` | `get_projects` |
+| `get_logged_in_user.test.ts` | `get_logged_in_user` |
+| `get_user_by_id.test.ts` | `get_user_by_id` |
+| `release_tools.test.ts` | `get_release_user_stories`, `get_release_bugs`, `get_release_features`, `get_release_open_bugs`, `get_release_open_user_stories` |
+| `user_team_tools.test.ts` | `get_users`, `get_teams` |
+| `comment_tools.test.ts` | `add_comment`, `get_user_story_comments`, `get_bug_comments` |
+| `creation_tools.test.ts` | `create_bug`, `create_user_story`, `create_feature`, `create_task`, `update_bug` |
+| `my_work_tools.test.ts` | `get_in_progress_tasks_and_bugs`, `list_my_user_stories`, `list_my_bugs`, `log_time`, `get_my_time_logs` |
+| `entity_tools.test.ts` | `get_feature_user_stories`, `get_user_story_bugs`, `get_card_current_status` |
