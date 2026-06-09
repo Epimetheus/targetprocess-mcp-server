@@ -263,6 +263,21 @@ export class TpClient {
     }, userStory) as T
   }
 
+  async createEpic<T>({ title, description, releaseId, projectId }: { title: string, description?: string, releaseId?: string, projectId?: string }): Promise<T | null> {
+    const epic: Record<string, any> = {
+      "Name": title,
+      "Project": { "Id": projectId || config.tp.projectId },
+    }
+
+    if (description) epic["Description"] = description
+    if (releaseId) epic["Release"] = { "Id": releaseId }
+
+    return this.post<any, T>({
+      pathParam: ["Epics"],
+      param: { "format": "json" },
+    }, epic)
+  }
+
   async createFeature<T>({ title, description, epicId, releaseId, projectId, teamId }: { title: string, description?: string, epicId?: string, releaseId?: string, projectId?: string, teamId?: string }): Promise<T> {
     const feature: Record<string, any> = {
       "Name": title,

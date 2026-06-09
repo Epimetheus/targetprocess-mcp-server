@@ -28,6 +28,7 @@ import { handleGetBugComments } from "./handlers/get_bug_comments.js";
 import { handleCreateBug } from "./handlers/create_bug.js";
 import { handleCreateUserStory } from "./handlers/create_user_story.js";
 import { handleCreateFeature } from "./handlers/create_feature.js";
+import { handleCreateEpic } from "./handlers/create_epic.js";
 import { handleCreateTask } from "./handlers/create_task.js";
 import { handleUpdateBug } from "./handlers/update_bug.js";
 import { handleGetInProgressTasksAndBugs } from "./handlers/get_in_progress_tasks_and_bugs.js";
@@ -677,6 +678,31 @@ server.registerTool(
   },
   async ({ title, description, featureId, releaseId, projectId, teamId }) =>
     handleCreateUserStory(tp, { title, description, featureId, releaseId, projectId, teamId })
+)
+
+server.registerTool(
+  'create_epic',
+  {
+    title: 'Create a new epic',
+    description: `Create a new Epic in Targetprocess.`,
+    inputSchema: {
+      title: z.string()
+        .describe('Epic title'),
+      description: z.string()
+        .optional()
+        .describe('Optional epic description (when provided, format as HTML)'),
+      releaseId: z.string()
+        .min(5)
+        .max(6)
+        .optional()
+        .describe('Optional Release ID to link this epic to (e.g. 145200)'),
+      projectId: z.string()
+        .optional()
+        .describe('Optional Project ID — defaults to TP_PROJECT_ID from config'),
+    },
+  },
+  async ({ title, description, releaseId, projectId }) =>
+    handleCreateEpic(tp, { title, description, releaseId, projectId })
 )
 
 server.registerTool(
