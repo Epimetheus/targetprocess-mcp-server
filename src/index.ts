@@ -39,6 +39,9 @@ import { handleGetFeatureUserStories } from "./handlers/get_feature_user_stories
 import { handleGetUserStoryBugs } from "./handlers/get_user_story_bugs.js";
 import { handleGetCardCurrentStatus } from "./handlers/get_card_current_status.js";
 import { handleUpdateUserStorySubState } from "./handlers/update_user_story_sub_state.js";
+import { handleGetCardRelations } from "./handlers/get_card_relations.js";
+import { handleCreateCardRelation } from "./handlers/create_card_relation.js";
+import { handleDeleteCardRelation } from "./handlers/delete_card_relation.js";
 
 const server = new McpServer(
   {
@@ -1331,6 +1334,84 @@ server.registerTool(
     },
   },
   async ({ id, resourceType = 'UserStory' }) => handleGetCardCurrentStatus(tp, id, resourceType)
+)
+
+server.registerTool(
+  'get_card_relations',
+  {
+    title: 'Get card relations',
+    description: `Get all relations (Dependency, Blocker, Relation, Link, Duplicate) for a TP card (UserStory, Bug, Feature, etc.) by its ID.
+      Each relation shows the related card and the direction:
+      - "outbound" — this card is the Master (e.g. for Dependency, the related card depends on this card)
+      - "inbound" — this card is the Slave (e.g. for Dependency, this card depends on the related card)`,
+    inputSchema: {
+      id: z.string()
+        .min(5)
+        .max(6)
+        .describe('TP card ID (e.g. 145789)'),
+    },
+  },
+  async ({ id }) => handleGetCardRelations(tp, id)
+)
+
+server.registerTool(
+  'get_relation_types',
+  {
+    title: 'Get relation types',
+    description: 'Get all relation types available in this Targetprocess instance (id + name). Use this to find the correct relationType name for "create_card_relation".',
+  },
+  async () => {
+    const response = await tp.getRelationTypes<TP.TpResponse<TP.RelationType>>()
+
+    if (!response) {
+      return {
+        content: [{ type: 'text', text: `Failed to get relation types` }],
+      }
+    }
+
+    const items = (response.Items || []).map((t) => ({ id: t.Id, name: t.Name }))
+    return {
+      content: [{ type: 'text', text: JSON.stringify(items) }],
+    }
+  }
+)
+
+server.registerTool(
+  'create_card_relation',
+  {
+    title: 'Create a relation between two cards',
+    description: `Create a relation between two TP cards (UserStory, Bug, Feature, etc.).
+      The Master is the source of the relation and the Slave is the target — e.g. for a "Depends on" relation, the Slave depends on the Master (Master must be done first).
+      NOTE: relationType is matched by name against this instance's relation types. If unsure of the exact name, call "get_relation_types" first. The handler resolves the name to its ID before creating the relation.`,
+    inputSchema: {
+      masterId: z.string()
+        .min(5)
+        .max(6)
+        .describe('Master card ID — the source of the relation (e.g. 145789)'),
+      slaveId: z.string()
+        .min(5)
+        .max(6)
+        .describe('Slave card ID — the target of the relation (e.g. 145790)'),
+      relationType: z.string()
+        .optional()
+        .describe('Relation type name as defined in this instance (e.g. "Depends on", "Relate to"). Resolve exact names via "get_relation_types". Defaults to "Depends on".'),
+    },
+  },
+  async ({ masterId, slaveId, relationType }) => handleCreateCardRelation(tp, { masterId, slaveId, relationType })
+)
+
+server.registerTool(
+  'delete_card_relation',
+  {
+    title: 'Delete a relation between two cards',
+    description: `Delete (remove) a relation between two TP cards by the relation's own ID — not the card IDs.
+      To find the relationId, call "get_card_relations" for one of the cards; each entry includes a "relationId" field.`,
+    inputSchema: {
+      relationId: z.string()
+        .describe('The relation ID to delete (the "relationId" field from "get_card_relations", e.g. 20748)'),
+    },
+  },
+  async ({ relationId }) => handleDeleteCardRelation(tp, relationId)
 )
 
 server.registerTool(
