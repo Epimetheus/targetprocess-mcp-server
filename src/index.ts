@@ -761,7 +761,7 @@ server.registerTool(
   },
   async ({ title, header, definitions, acceptanceCriteria, scenarios, examplesTable, edgeCases, references, notes, featureId, releaseId, projectId, teamId }) => {
     const gherkinBlock = (items: { name: string; steps: string[] }[]) =>
-      items.map(s => `<pre>Scenario: ${s.name}\n${s.steps.map(step => `  ${step}`).join('\n')}</pre>`).join('\n')
+      items.map(s => `<strong>Scenario</strong><div>: ${s.name}\n${s.steps.map(step => `\t${step}`).join('\n')}</div>`).join('\n')
 
     const parts: string[] = ['<div>']
 
