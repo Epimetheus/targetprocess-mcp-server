@@ -94,6 +94,8 @@ Cards — Write
 - `create_formatted_user_story` — Create a new user story with a structured template description (title, header object with asA/iWant/soThat, acceptanceCriteria array, scenarios array with Gherkin steps, optional definitions, examplesTable, edgeCases, references, notes, optional featureId, releaseId, projectId, teamId)  
 > [!NOTE]  
 > `projectId` and `teamId` are optional — fall back to `TP_PROJECT_ID` and `TP_TEAM_ID` from config  
+- `format_existing_user_story` — Re-format the description of an existing user story using the structured template (id, header object with asA/iWant/soThat, acceptanceCriteria array, scenarios array with Gherkin steps, optional title, definitions, examplesTable, edgeCases, references, notes)
+  > Call `get_user_story_content` first to read the current content, then reconstruct the structured fields before calling this tool
 - `create_feature` — Create a new feature (title, optional description, optional epicId, optional releaseId, optional projectId, optional teamId)  
 > [!NOTE]  
 > `projectId` and `teamId` are optional — fall back to `TP_PROJECT_ID` and `TP_TEAM_ID` from config  
