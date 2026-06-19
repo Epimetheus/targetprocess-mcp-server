@@ -764,13 +764,13 @@ server.registerTool(
   },
   async ({ title, header, definitions, acceptanceCriteria, scenarios, examplesTable, edgeCases, references, notes, featureId, releaseId, projectId, teamId }) => {
     const gherkinBlock = (items: { name: string; steps: string[] }[]) =>
-      items.map((s, indx) => `<div><strong>Scenario ${indx + 1} - ${s.name}:</strong></div><div>${s.steps.map(step => `<div>\t${step}</div>`).join('\n')}</div>`).join('\n')
+      items.map((s, indx) => `<div><strong>Scenario ${indx + 1} - ${s.name}:</strong></div><div>${s.steps.map(step => `<div>\t${step}</div>`).join('\n')}</div>`).join('<br>')
 
     const parts: string[] = ['<div>']
 
     parts.push('<h3>Header</h3>')
     if (header.storyId) parts.push(`<p><strong>Story ID:</strong> ${header.storyId}</p>`)
-    parts.push(`<p>As a ${header.asA} / I want ${header.iWant} / so that ${header.soThat}</p>`)
+    parts.push(`<p>As a ${header.asA} <br> I want ${header.iWant} <br> so that ${header.soThat}</p>`)
 
     if (definitions) {
       parts.push('<h3>Definitions</h3>')
