@@ -28,6 +28,10 @@ import { handleGetBugComments } from "./handlers/get_bug_comments.js";
 import { handleCreateBug } from "./handlers/create_bug.js";
 import { handleCreateUserStory } from "./handlers/create_user_story.js";
 import { handleCreateFeature } from "./handlers/create_feature.js";
+import { handleCreateEpic } from "./handlers/create_epic.js";
+import { handleGetEpicContent } from "./handlers/get_epic_content.js";
+import { handleUpdateEpic } from "./handlers/update_epic.js";
+import { handleGetEpicFeatures } from "./handlers/get_epic_features.js";
 import { handleCreateTask } from "./handlers/create_task.js";
 import { handleUpdateBug } from "./handlers/update_bug.js";
 import { handleGetInProgressTasksAndBugs } from "./handlers/get_in_progress_tasks_and_bugs.js";
@@ -866,6 +870,91 @@ server.registerTool(
   },
   async ({ title, description, epicId, releaseId, projectId, teamId }) =>
     handleCreateFeature(tp, { title, description, epicId, releaseId, projectId, teamId })
+)
+
+server.registerTool(
+  'create_epic',
+  {
+    title: 'Create a new epic',
+    description: `Create a new Epic in Targetprocess.`,
+    inputSchema: {
+      title: z.string()
+        .describe('Epic title'),
+      description: z.string()
+        .optional()
+        .describe('Optional epic description (when provided, format as HTML)'),
+      releaseId: z.string()
+        .min(5)
+        .max(6)
+        .optional()
+        .describe('Optional Release ID to link this epic to (e.g. 145200)'),
+      projectId: z.string()
+        .optional()
+        .describe('Optional Project ID -- defaults to TP_PROJECT_ID from config'),
+    },
+  },
+  async ({ title, description, releaseId, projectId }) =>
+    handleCreateEpic(tp, { title, description, releaseId, projectId })
+)
+
+server.registerTool(
+  'get_epic_content',
+  {
+    title: 'Get epic content',
+    description: 'Get a Targetprocess Epic by ID, including its description, state, and progress.',
+    inputSchema: {
+      id: z.string()
+        .min(5)
+        .max(6)
+        .describe('Epic ID (e.g. 148813)'),
+    },
+  },
+  async ({ id }) => handleGetEpicContent(tp, id)
+)
+
+server.registerTool(
+  'update_epic',
+  {
+    title: 'Update an epic',
+    description: 'Update a Targetprocess Epic. Pass only the fields to change.',
+    inputSchema: {
+      id: z.string()
+        .min(5)
+        .max(6)
+        .describe('Epic ID (e.g. 148813)'),
+      title: z.string()
+        .optional()
+        .describe('Updated epic title'),
+      description: z.string()
+        .optional()
+        .describe('Updated epic description (format as HTML)'),
+      releaseId: z.string()
+        .min(5)
+        .max(6)
+        .optional()
+        .describe('Optional Release ID to link this epic to'),
+      projectId: z.string()
+        .optional()
+        .describe('Optional Project ID'),
+    },
+  },
+  async ({ id, title, description, releaseId, projectId }) =>
+    handleUpdateEpic(tp, { id, title, description, releaseId, projectId })
+)
+
+server.registerTool(
+  'get_epic_features',
+  {
+    title: 'Get features in an epic',
+    description: 'Get all Features belonging to a Targetprocess Epic.',
+    inputSchema: {
+      id: z.string()
+        .min(5)
+        .max(6)
+        .describe('Epic ID (e.g. 148813)'),
+    },
+  },
+  async ({ id }) => handleGetEpicFeatures(tp, id)
 )
 
 server.registerTool(
