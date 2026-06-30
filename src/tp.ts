@@ -227,8 +227,9 @@ export class TpClient {
     description,
     projectId,
     teamId,
-    entityStateId
-  }: { id: string, title?: string, description?: string, projectId?: string, teamId?: string, teamAssignmentId?: string, entityStateId?: string }): Promise<T> {
+    entityStateId,
+    featureId
+  }: { id: string, title?: string, description?: string, projectId?: string, teamId?: string, teamAssignmentId?: string, entityStateId?: string, featureId?: string }): Promise<T> {
     const userStory: Record<string, any> = { "Id": id }
 
     if (title) userStory["Name"] = title
@@ -236,6 +237,7 @@ export class TpClient {
     if (projectId) userStory["Project"] = { "Id": projectId }
     if (teamId) userStory["assignedTeams"] = [{ "team": { "id": teamId } }]
     if (entityStateId) userStory["EntityState"] = { "Id": entityStateId }
+    if (featureId) userStory["Feature"] = { "Id": featureId }
 
     return this.post<any, T>({
       pathParam: ["UserStories"],
