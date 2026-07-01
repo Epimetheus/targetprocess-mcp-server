@@ -587,10 +587,13 @@ server.registerTool(
       entityStateId: z.string()
         .optional()
         .describe('Optional Entity State ID — if user gave a state name, resolve it via "get_user_story_workflows" first'),
+      featureId: z.string()
+        .optional()
+        .describe('Optional Feature ID — moves this user story to the specified feature'),
     },
   },
-  async ({ id, title, description, projectId, teamId, entityStateId }) => {
-    const response = await tp.updateUserStory<any>({ id, title, description, projectId, teamId, entityStateId });
+  async ({ id, title, description, projectId, teamId, entityStateId, featureId }) => {
+    const response = await tp.updateUserStory<any>({ id, title, description, projectId, teamId, entityStateId, featureId });
 
     if (!response) {
       return {
