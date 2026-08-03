@@ -10,7 +10,7 @@
   "license": "ISC",
   "mcpServers": {
     "targetprocess": {
-      "command": "node",
+      "command": "npx",
       "args": ["-y", "targetprocess-mcp-server"],
       "env": {
         "TP_BASE_URL": "${TP_BASE_URL}",
