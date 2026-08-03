@@ -474,7 +474,6 @@ server.registerTool(
         "Developer Raised",
         "Operations",
       ])
-        .default("Manual QA")
         .optional()
         .describe('Where the bug was found, defaults to "Manual QA" if no origin was specified'),
       projectId: z.string()
@@ -677,7 +676,6 @@ server.registerTool(
         "Developer Raised",
         "Operations",
       ])
-        .default("Manual QA")
         .optional()
         .describe('Where the bug was found, defaults to "Manual QA" if no origin was specified'),
       projectId: z.string()
@@ -688,7 +686,7 @@ server.registerTool(
         .describe('Optional Team ID — if user gave a team name, resolve it via "get_teams" first; defaults to TP_TEAM_ID from config'),
       entityStateId: z.string()
         .optional()
-        .describe('Optional Entity State ID — if user gave a state name, resolve it via "get_bug_workflows" first; defaults to "Done"'),
+        .describe('Optional Entity State ID — if user gave a state name, resolve it via "get_bug_workflows" first; defaults to "Backlog" or "To Do"'),
       tags: z.string()
         .optional()
         .describe('Optional comma-separated tags to apply, e.g. "regression, mobile"'),

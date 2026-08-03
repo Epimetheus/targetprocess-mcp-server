@@ -220,17 +220,12 @@ export class TpClient {
     return response
   }
 
-  async createBug<T>({ title, card, bugContent, origin = "Manual QA", projectId, teamId }: { title: string, card: { id: string, type: "UserStory" | "Bug" | "Feature" }, bugContent: string, origin?: string, projectId?: string, teamId?: string }): Promise<T> {
+  async createBug<T>({ title, card, bugContent, origin, projectId, teamId }: { title: string, card: { id: string, type: "UserStory" | "Bug" | "Feature" }, bugContent: string, origin?: string, projectId?: string, teamId?: string }): Promise<T> {
     const bug = {
       "Name": title,
       "Project": {
         "Id": projectId || config.tp.projectId
       },
-      "customFields": [{
-        "name": "Origin",
-        "type": "DropDown",
-        "value": origin
-      }],
       "assignedTeams": [{
         "team": {
           "id": teamId || config.tp.teamId
@@ -238,6 +233,16 @@ export class TpClient {
       }],
       "Description": bugContent,
     } as any
+
+    console.error(origin)
+
+    if (origin) {
+      bug["customFields"] = [{
+        "name": "Origin",
+        "type": "DropDown",
+        "value": origin
+      }]
+    }
 
     if (card.type === "UserStory") {
       bug["UserStory"] = { "Id": card.id }
