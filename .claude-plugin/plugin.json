@@ -11,7 +11,7 @@
   "mcpServers": {
     "targetprocess": {
       "command": "node",
-      "args": ["${CLAUDE_PLUGIN_ROOT}/build/index.js"],
+      "args": ["-y", "targetprocess-mcp-server"],
       "env": {
         "TP_BASE_URL": "${TP_BASE_URL}",
         "TP_TOKEN": "${TP_TOKEN}",
