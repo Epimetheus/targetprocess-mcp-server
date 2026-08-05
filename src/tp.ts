@@ -334,23 +334,26 @@ export class TpClient {
     }, bug) as T
   }
 
-  async createBugOnly<T>({ title, bugContent, origin = "Manual QA", projectId, teamId, entityStateId, tags, teamIterationId }: BugInputSchema): Promise<T> {
+  async createBugOnly<T>({ title, bugContent, origin, projectId, teamId, entityStateId, tags, teamIterationId }: BugInputSchema): Promise<T> {
     const bug: Record<string, any> = {
       "Name": title,
       "Project": {
         "Id": projectId || config.tp.projectId
       },
-      "customFields": [{
-        "name": "Origin",
-        "type": "DropDown",
-        "value": origin
-      }],
       "assignedTeams": [{
         "team": {
           "id": teamId || config.tp.teamId
         }
       }],
       "Description": bugContent,
+    }
+
+    if (origin) {
+      bug["customFields"] = [{
+        "name": "Origin",
+        "type": "DropDown",
+        "value": origin
+      }]
     }
 
     if (entityStateId) bug["EntityState"] = { "Id": entityStateId }
@@ -491,17 +494,8 @@ export class TpClient {
   async createBugBasedOnUserStory<T>(title: string, userStoryId: string, bugContent: string): Promise<T> {
     const bug = {
       "Name": title,
-      "Project": {
-        "Id": config.tp.projectId
-      },
-      "UserStory": {
-        "Id": userStoryId
-      },
-      "customFields": [{
-        "name": "Origin",
-        "type": "DropDown",
-        "value": "Manual QA"
-      }],
+      "Project": { "Id": config.tp.projectId },
+      "UserStory": { "Id": userStoryId },
       "assignedTeams": [{
         "team": {
           "id": config.tp.teamId
