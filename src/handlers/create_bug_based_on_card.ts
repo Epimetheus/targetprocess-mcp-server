@@ -1,21 +1,19 @@
 import type { TpClient } from '../tp.js'
 import type * as TP from '../types.js'
 
-export async function handleCreateBug(
+export async function handleCreateBugBasedOnCard(
   tp: TpClient,
   params: {
     title: string
+    card: { id: string, type: "UserStory" | "Bug" | "Feature" }
     bugContent: string
     origin?: string
     releaseId?: string
     projectId?: string
     teamId?: string
-    entityStateId?: string
-    tags?: string
-    teamIterationId?: string
   },
 ) {
-  const bugResponse = await tp.createBugOnly<TP.Bug>(params)
+  const bugResponse = await tp.createBug<TP.Bug>(params)
 
   if (!bugResponse) {
     return {

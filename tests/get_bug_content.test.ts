@@ -52,6 +52,32 @@ describe('handleGetBugContent', () => {
     expect(result.content[0].text).toContain('145789')
   })
 
+  it('returns the assigned release', async () => {
+    vi.mocked(mockTp.getBug).mockResolvedValue({
+      Id: 145789,
+      Name: 'Bug',
+      Description: '',
+      Release: { Id: 145636, Name: 'Release 1.0' },
+      CustomFields: [],
+    } as any)
+
+    const result = await handleGetBugContent(mockTp, '145789')
+    const parsed = JSON.parse(result.content[0].text)
+
+    expect(parsed.release).toEqual({ id: 145636, name: 'Release 1.0' })
+  })
+
+  it('returns null release when the bug has none', async () => {
+    vi.mocked(mockTp.getBug).mockResolvedValue({
+      Id: 145789, Name: 'Bug', Description: '', Release: null, CustomFields: [],
+    } as any)
+
+    const result = await handleGetBugContent(mockTp, '145789')
+    const parsed = JSON.parse(result.content[0].text)
+
+    expect(parsed.release).toBeNull()
+  })
+
   it('calls getBug with the provided id', async () => {
     vi.mocked(mockTp.getBug).mockResolvedValue({
       Id: 1, Name: 'B', Description: '', CustomFields: [],
