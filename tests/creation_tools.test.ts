@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { handleCreateBug } from '../src/handlers/create_bug.js'
+import { handleCreateBugBasedOnCard } from '../src/handlers/create_bug_based_on_card.js'
 import { handleCreateUserStory } from '../src/handlers/create_user_story.js'
 import { handleCreateFeature } from '../src/handlers/create_feature.js'
 import { handleCreateTask } from '../src/handlers/create_task.js'
@@ -9,6 +10,7 @@ import type { TpClient } from '../src/tp.js'
 
 const mockTp = {
   createBugOnly: vi.fn(),
+  createBug: vi.fn(),
   createUserStory: vi.fn(),
   createFeature: vi.fn(),
   createTask: vi.fn(),
@@ -51,6 +53,18 @@ describe('handleCreateBug', () => {
     })
   })
 
+  it('passes releaseId to createBugOnly', async () => {
+    vi.mocked(mockTp.createBugOnly).mockResolvedValue({ Id: 1 } as any)
+
+    await handleCreateBug(mockTp, {
+      title: 'Bug', bugContent: 'content', releaseId: '145636',
+    })
+
+    expect(mockTp.createBugOnly).toHaveBeenCalledWith({
+      title: 'Bug', bugContent: 'content', releaseId: '145636',
+    })
+  })
+
   it('passes tags and teamIterationId to createBugOnly', async () => {
     vi.mocked(mockTp.createBugOnly).mockResolvedValue({ Id: 1 } as any)
 
@@ -60,6 +74,56 @@ describe('handleCreateBug', () => {
 
     expect(mockTp.createBugOnly).toHaveBeenCalledWith({
       title: 'Bug', bugContent: 'content', tags: 'regression, mobile', teamIterationId: '789',
+    })
+  })
+})
+
+describe('handleCreateBugBasedOnCard', () => {
+  const card = { id: '145789', type: 'UserStory' as const }
+
+  it('returns created bug on success', async () => {
+    vi.mocked(mockTp.createBug).mockResolvedValue({ Id: 500, Name: 'Login fails' } as any)
+
+    const result = await handleCreateBugBasedOnCard(mockTp, {
+      title: 'Login fails', card, bugContent: '<div>Steps...</div>',
+    })
+    const parsed = JSON.parse(result.content[0].text)
+
+    expect(parsed.Id).toBe(500)
+    expect(parsed.Name).toBe('Login fails')
+  })
+
+  it('returns failure message when null', async () => {
+    vi.mocked(mockTp.createBug).mockResolvedValue(null as any)
+
+    const result = await handleCreateBugBasedOnCard(mockTp, {
+      title: 'Login fails', card, bugContent: '<div>Steps</div>',
+    })
+
+    expect(result.content[0].text).toContain('Failed to create bug "Login fails"')
+  })
+
+  it('calls createBug with all params', async () => {
+    vi.mocked(mockTp.createBug).mockResolvedValue({ Id: 1 } as any)
+
+    await handleCreateBugBasedOnCard(mockTp, {
+      title: 'Bug', card, bugContent: 'content', origin: 'Manual QA', projectId: '10', teamId: '20',
+    })
+
+    expect(mockTp.createBug).toHaveBeenCalledWith({
+      title: 'Bug', card, bugContent: 'content', origin: 'Manual QA', projectId: '10', teamId: '20',
+    })
+  })
+
+  it('passes releaseId to createBug', async () => {
+    vi.mocked(mockTp.createBug).mockResolvedValue({ Id: 1 } as any)
+
+    await handleCreateBugBasedOnCard(mockTp, {
+      title: 'Bug', card, bugContent: 'content', releaseId: '145636',
+    })
+
+    expect(mockTp.createBug).toHaveBeenCalledWith({
+      title: 'Bug', card, bugContent: 'content', releaseId: '145636',
     })
   })
 })
@@ -183,6 +247,14 @@ describe('handleUpdateBug', () => {
     await handleUpdateBug(mockTp, { id: '100', tags: 'regression, mobile', teamIterationId: '789' })
 
     expect(mockTp.updateBug).toHaveBeenCalledWith({ id: '100', tags: 'regression, mobile', teamIterationId: '789' })
+  })
+
+  it('passes releaseId to updateBug', async () => {
+    vi.mocked(mockTp.updateBug).mockResolvedValue({ Id: 1 } as any)
+
+    await handleUpdateBug(mockTp, { id: '100', releaseId: '145636' })
+
+    expect(mockTp.updateBug).toHaveBeenCalledWith({ id: '100', releaseId: '145636' })
   })
 })
 

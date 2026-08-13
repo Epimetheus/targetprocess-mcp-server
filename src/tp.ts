@@ -220,7 +220,7 @@ export class TpClient {
     return response
   }
 
-  async createBug<T>({ title, card, bugContent, origin, projectId, teamId }: { title: string, card: { id: string, type: "UserStory" | "Bug" | "Feature" }, bugContent: string, origin?: string, projectId?: string, teamId?: string }): Promise<T> {
+  async createBug<T>({ title, card, bugContent, origin, releaseId, projectId, teamId }: { title: string, card: { id: string, type: "UserStory" | "Bug" | "Feature" }, bugContent: string, origin?: string, releaseId?: string, projectId?: string, teamId?: string }): Promise<T> {
     const bug = {
       "Name": title,
       "Project": {
@@ -243,6 +243,8 @@ export class TpClient {
         "value": origin
       }]
     }
+
+    if (releaseId) bug["Release"] = { "Id": releaseId }
 
     if (card.type === "UserStory") {
       bug["UserStory"] = { "Id": card.id }
@@ -308,7 +310,7 @@ export class TpClient {
     }, userStory) as T
   }
 
-  async updateBug<T>({ id, title, bugContent, origin, projectId, teamId, entityStateId, tags, teamIterationId }: { id: string, title?: string, bugContent?: string, origin?: string, projectId?: string, teamId?: string, entityStateId?: string, tags?: string, teamIterationId?: string }): Promise<T> {
+  async updateBug<T>({ id, title, bugContent, origin, releaseId, projectId, teamId, entityStateId, tags, teamIterationId }: { id: string, title?: string, bugContent?: string, origin?: string, releaseId?: string, projectId?: string, teamId?: string, entityStateId?: string, tags?: string, teamIterationId?: string }): Promise<T> {
     const bug: Record<string, any> = { "Id": id }
 
     if (title) bug["Name"] = title
@@ -318,6 +320,7 @@ export class TpClient {
       "type": "DropDown",
       "value": origin
     }]
+    if (releaseId) bug["Release"] = { "Id": releaseId }
     if (projectId) bug["Project"] = { "Id": projectId }
     if (teamId) bug["assignedTeams"] = [{
       "team": {
@@ -334,7 +337,7 @@ export class TpClient {
     }, bug) as T
   }
 
-  async createBugOnly<T>({ title, bugContent, origin, projectId, teamId, entityStateId, tags, teamIterationId }: BugInputSchema): Promise<T> {
+  async createBugOnly<T>({ title, bugContent, origin, releaseId, projectId, teamId, entityStateId, tags, teamIterationId }: BugInputSchema): Promise<T> {
     const bug: Record<string, any> = {
       "Name": title,
       "Project": {
@@ -356,6 +359,7 @@ export class TpClient {
       }]
     }
 
+    if (releaseId) bug["Release"] = { "Id": releaseId }
     if (entityStateId) bug["EntityState"] = { "Id": entityStateId }
     if (tags) bug["Tags"] = tags
     if (teamIterationId) bug["TeamIteration"] = { "Id": teamIterationId }

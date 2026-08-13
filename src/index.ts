@@ -28,6 +28,7 @@ import { handleAddComment } from "./handlers/add_comment.js";
 import { handleGetUserStoryComments } from "./handlers/get_user_story_comments.js";
 import { handleGetBugComments } from "./handlers/get_bug_comments.js";
 import { handleCreateBug } from "./handlers/create_bug.js";
+import { handleCreateBugBasedOnCard } from "./handlers/create_bug_based_on_card.js";
 import { handleCreateUserStory } from "./handlers/create_user_story.js";
 import { handleCreateFormattedUserStory } from "./handlers/create_formatted_user_story.js";
 import { handleCreateFormattedFeature } from "./handlers/create_formatted_feature.js";
@@ -446,7 +447,8 @@ server.registerTool(
         3) format the new bug inside html <div> tags with Environment (describes where bug was found, dev, feature, review or uat Environment), Issue Description, Steps to Reproduce, Expected Behavior, Actual Behavior and Attachments sections (note: section titles should be wrapped in <h3> tags, e.g. <h3>Issue Description</h3>);
         4) IF the user specified a team by name (not ID), call "get_teams" to find the matching team and use its ID as teamId;
         5) IF the user specified a project by name (not ID), call "get_projects" to find the matching project and use its ID as projectId;
-        6) add a comment to the card with created bug Id and its Title`,
+        6) IF the user specified a release by name (not ID), call "get_current_releases" to find the matching release and use its ID as releaseId;
+        7) add a comment to the card with created bug Id and its Title`,
     inputSchema: {
       title: z.string()
         .describe('Bug card title that summarizes the problem in concise, descriptive, and actionable manner, enabling a developer to understand the issue without opening the report'),
@@ -476,6 +478,11 @@ server.registerTool(
       ])
         .optional()
         .describe('Where the bug was found, defaults to "Manual QA" if no origin was specified'),
+      releaseId: z.string()
+        .min(5)
+        .max(9)
+        .optional()
+        .describe('Optional Release ID to assign this bug to — if user gave a release name, resolve it via "get_current_releases" first'),
       projectId: z.string()
         .optional()
         .describe('Optional Project ID — if user gave a project name, resolve it via "get_projects" first; defaults to TP_PROJECT_ID from config'),
@@ -484,25 +491,8 @@ server.registerTool(
         .describe('Optional Team ID — if user gave a team name, resolve it via "get_teams" first; defaults to TP_TEAM_ID from config'),
     },
   },
-  async ({ title, card, bugContent, origin, projectId, teamId }) => {
-    const bugResponse = await tp.createBug<TP.Bug>({ title, card, bugContent, origin, projectId, teamId });
-
-    if (!bugResponse) {
-      return {
-        content: [{
-          type: 'text',
-          text: `Failed to create bug "${title}"\n JSON: ${JSON.stringify(bugResponse, null, 2)}`
-        }]
-      };
-    }
-
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(bugResponse)
-      }],
-    };
-  }
+  async ({ title, card, bugContent, origin, releaseId, projectId, teamId }) =>
+    handleCreateBugBasedOnCard(tp, { title, card, bugContent, origin, releaseId, projectId, teamId })
 )
 
 server.registerTool(
@@ -515,7 +505,8 @@ server.registerTool(
         1) IF the user specified a team by name (not ID), call "get_teams" to find the matching team and use its ID as teamId;
         2) IF the user specified a project by name (not ID), call "get_projects" to find the matching project and use its ID as projectId;
         3) IF the user specified a state by name (not ID), call "get_bug_workflows" to find the matching state and use its ID as entityStateId;
-        4) IF the user specified a sprint/iteration by name, call "get_team_iterations" to find the matching iteration and use its ID as teamIterationId;`,
+        4) IF the user specified a sprint/iteration by name, call "get_team_iterations" to find the matching iteration and use its ID as teamIterationId;
+        5) IF the user specified a release by name (not ID), call "get_current_releases" to find the matching release and use its ID as releaseId;`,
     inputSchema: {
       id: z.string()
         .min(5)
@@ -540,6 +531,11 @@ server.registerTool(
       ])
         .optional()
         .describe('Where the bug was found, defaults to "Manual QA"'),
+      releaseId: z.string()
+        .min(5)
+        .max(9)
+        .optional()
+        .describe('Optional Release ID to assign this bug to — if user gave a release name, resolve it via "get_current_releases" first'),
       projectId: z.string()
         .optional()
         .describe('Optional Project ID — if user gave a project name, resolve it via "get_projects" first; defaults to TP_PROJECT_ID from config'),
@@ -557,8 +553,8 @@ server.registerTool(
         .describe('Optional Team Iteration (sprint) ID — resolve it via "get_team_iterations" first'),
     },
   },
-  async ({ id, title, bugContent, origin, projectId, teamId, entityStateId, tags, teamIterationId }) =>
-    handleUpdateBug(tp, { id, title, bugContent, origin, projectId, teamId, entityStateId, tags, teamIterationId })
+  async ({ id, title, bugContent, origin, releaseId, projectId, teamId, entityStateId, tags, teamIterationId }) =>
+    handleUpdateBug(tp, { id, title, bugContent, origin, releaseId, projectId, teamId, entityStateId, tags, teamIterationId })
 )
 
 server.registerTool(
@@ -659,7 +655,8 @@ server.registerTool(
         1) format the new bug inside html <div> tags with Environment(describes where bug was found, dev, feature, review or uat Environment), Issue Description, Steps to Reproduce, Expected Behavior, Actual Behavior and Attachments sections (note: section titles should be wrapped in <h3> tags, e.g. <h3>Issue Description</h3>, step to reproduce should be wrapped in <ol>);
         2) IF the user specified a team by name (not ID), call "get_teams" to find the matching team and use its ID as teamId;
         3) IF the user specified a project by name (not ID), call "get_projects" to find the matching project and use its ID as projectId;
-        4) IF the user specified a sprint/iteration by name, call "get_team_iterations" to find the matching iteration and use its ID as teamIterationId;`,
+        4) IF the user specified a sprint/iteration by name, call "get_team_iterations" to find the matching iteration and use its ID as teamIterationId;
+        5) IF the user specified a release by name (not ID), call "get_current_releases" to find the matching release and use its ID as releaseId;`,
     inputSchema: {
       title: z.string()
         .describe('Bug card title that summarizes the problem in concise, descriptive, and actionable manner, enabling a developer to understand the issue without opening the report'),
@@ -678,6 +675,11 @@ server.registerTool(
       ])
         .optional()
         .describe('Where the bug was found, defaults to "Manual QA" if no origin was specified'),
+      releaseId: z.string()
+        .min(5)
+        .max(9)
+        .optional()
+        .describe('Optional Release ID to assign this bug to — if user gave a release name, resolve it via "get_current_releases" first'),
       projectId: z.string()
         .optional()
         .describe('Optional Project ID — if user gave a project name, resolve it via "get_projects" first; defaults to TP_PROJECT_ID from config'),
@@ -695,8 +697,8 @@ server.registerTool(
         .describe('Optional Team Iteration (sprint) ID — resolve it via "get_team_iterations" first'),
     },
   },
-  async ({ title, bugContent, origin, projectId, teamId, entityStateId, tags, teamIterationId }) =>
-    handleCreateBug(tp, { title, bugContent, origin, projectId, teamId, entityStateId, tags, teamIterationId })
+  async ({ title, bugContent, origin, releaseId, projectId, teamId, entityStateId, tags, teamIterationId }) =>
+    handleCreateBug(tp, { title, bugContent, origin, releaseId, projectId, teamId, entityStateId, tags, teamIterationId })
 )
 
 server.registerTool(
