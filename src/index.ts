@@ -964,7 +964,7 @@ server.registerTool(
   'create_feature',
   {
     title: 'Create a new feature',
-    description: `Create a new Feature in Targetprocess.`,
+    description: `DEPRECATED — use "create_formatted_feature" instead for all new features. Only call this tool when you have a fully pre-written HTML description and the user has explicitly opted out of the structured template.`,
     inputSchema: {
       title: z.string()
         .describe('Feature title'),
